@@ -1,0 +1,35 @@
+.energy-table {
+    width: 100%;
+    color: #fff;
+    border-collapse: collapse;
+    background: transparent;
+}
+
+.energy-table thead {
+    background: #1f2937;
+}
+
+.energy-table th {
+    color: #d1d5db;
+    padding: 16px;
+    border: none;
+}
+
+.energy-table td {
+    padding: 16px;
+    color: #f9fafb;
+    border-color: rgba(255,255,255,0.05);
+}
+
+.energy-table td,
+.energy-table th {
+    background-color: transparent !important;
+}
+.energy-table tbody tr {
+    background: #111827;
+    transition: 0.3s ease;
+}
+
+.energy-table tbody tr:hover {
+    background: #1e293b;
+}

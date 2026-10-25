@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% block page_title %}Alertas y Recomendaciones{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Centro de Alertas</h1>
+  <p>Notificaciones en tiempo real sobre el estado energético de las localidades.</p>
+</div>
+
+<div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;align-items:center">
+  <div class="filters-row" style="margin:0">
+    <select>
+      <option>Todos los tipos</option>
+      <option>Crítica</option>
+      <option>Advertencia</option>
+      <option>Informativa</option>
+    </select>
+    <select>
+      <option>Todas las zonas</option>
+      <option>Kennedy Norte</option><option>Bosa Central</option>
+      <option>Fontibón Sur</option><option>Engativá</option><option>Suba</option>
+    </select>
+    <select>
+      <option>Últimas 24h</option><option>Última semana</option><option>Último mes</option>
+    </select>
+  </div>
+  <div style="margin-left:auto;display:flex;gap:8px">
+    <button class="btn btn-outline" onclick="markAll()"><i class="fa-solid fa-check-double"></i> Marcar todas como leídas</button>
+    <button class="btn btn-primary"><i class="fa-solid fa-bell-slash"></i> Gestionar notificaciones</button>
+  </div>
+</div>
+
+<!-- Summary -->
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px">
+  <div class="card" style="padding:16px 20px;display:flex;align-items:center;gap:14px">
+    <div style="width:44px;height:44px;border-radius:10px;background:rgba(239,68,68,.15);display:flex;align-items:center;justify-content:center;color:var(--red);font-size:20px">
+      <i class="fa-solid fa-circle-exclamation"></i>
+    </div>
+    <div>
+      <div style="font-family:var(--font-mono);font-size:26px;font-weight:700;color:var(--red)">1</div>
+      <div style="font-size:13px;color:var(--text2)">Alertas críticas</div>
+    </div>
+  </div>
+  <div class="card" style="padding:16px 20px;display:flex;align-items:center;gap:14px">
+    <div style="width:44px;height:44px;border-radius:10px;background:rgba(245,158,11,.15);display:flex;align-items:center;justify-content:center;color:var(--yellow);font-size:20px">
+      <i class="fa-solid fa-triangle-exclamation"></i>
+    </div>
+    <div>
+      <div style="font-family:var(--font-mono);font-size:26px;font-weight:700;color:var(--yellow)">2</div>
+      <div style="font-size:13px;color:var(--text2)">Advertencias</div>
+    </div>
+  </div>
+  <div class="card" style="padding:16px 20px;display:flex;align-items:center;gap:14px">
+    <div style="width:44px;height:44px;border-radius:10px;background:rgba(6,182,212,.15);display:flex;align-items:center;justify-content:center;color:var(--cyan);font-size:20px">
+      <i class="fa-solid fa-circle-info"></i>
+    </div>
+    <div>
+      <div style="font-family:var(--font-mono);font-size:26px;font-weight:700;color:var(--cyan)">2</div>
+      <div style="font-size:13px;color:var(--text2)">Informativas</div>
+    </div>
+  </div>
+</div>
+
+<!-- Alert List -->
+<div class="card">
+  <div class="card-title"><i class="fa-solid fa-list-check"></i> Todas las Alertas ({{ alertas|length }})</div>
+  {% for a in alertas %}
+  <div class="alert-item {{ a.tipo }}" id="alert-{{ a.id }}">
+    <div class="alert-dot"></div>
+    <div class="alert-content">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+        <div>
+          <div class="alert-title">
+            {% if a.tipo == 'critica' %}<span class="tag tag-red" style="margin-right:8px">Crítica</span>{% endif %}
+            {% if a.tipo == 'advertencia' %}<span class="tag tag-yellow" style="margin-right:8px">Advertencia</span>{% endif %}
+            {% if a.tipo == 'info' %}<span class="tag" style="background:rgba(6,182,212,.12);color:var(--cyan);margin-right:8px">Info</span>{% endif %}
+            {{ a.titulo }}
+          </div>
+          <div class="alert-desc" style="margin-top:5px">{{ a.desc }}</div>
+          <div class="alert-meta">
+            <span><i class="fa-solid fa-clock"></i>{{ a.hora }}</span>
+            <span><i class="fa-solid fa-location-dot"></i>{{ a.zona }}</span>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;flex-shrink:0">
+          <button class="btn btn-outline" style="padding:5px 10px;font-size:12px"
+            onclick="document.getElementById('alert-{{ a.id }}').style.opacity='0.3'">
+            <i class="fa-solid fa-check"></i>
+          </button>
+          <button class="btn btn-outline" style="padding:5px 10px;font-size:12px">
+            <i class="fa-solid fa-eye"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Recomendaciones -->
+<div class="card" style="margin-top:16px">
+  <div class="card-title"><i class="fa-solid fa-lightbulb"></i> Recomendaciones del Sistema</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+    <div style="background:var(--bg3);border-radius:var(--radius-sm);padding:16px;border:1px solid rgba(16,185,129,.2)">
+      <div style="color:var(--green);font-size:20px;margin-bottom:8px"><i class="fa-solid fa-solar-panel"></i></div>
+      <div style="font-weight:600;font-size:14px;margin-bottom:4px">Diversificar fuentes</div>
+      <div style="font-size:13px;color:var(--text2)">Kennedy Norte podría integrar paneles solares comunitarios para reducir la carga de la red en horas pico.</div>
+    </div>
+    <div style="background:var(--bg3);border-radius:var(--radius-sm);padding:16px;border:1px solid rgba(245,158,11,.2)">
+      <div style="color:var(--yellow);font-size:20px;margin-bottom:8px"><i class="fa-solid fa-clock-rotate-left"></i></div>
+      <div style="font-weight:600;font-size:14px;margin-bottom:4px">Redistribuir horarios</div>
+      <div style="font-size:13px;color:var(--text2)">Incentivar a industrias en Engativá a desplazar consumo fuera de las horas pico (18:00–21:00).</div>
+    </div>
+    <div style="background:var(--bg3);border-radius:var(--radius-sm);padding:16px;border:1px solid rgba(6,182,212,.2)">
+      <div style="color:var(--cyan);font-size:20px;margin-bottom:8px"><i class="fa-solid fa-gauge"></i></div>
+      <div style="font-weight:600;font-size:14px;margin-bottom:4px">Auditoría en Bosa</div>
+      <div style="font-size:13px;color:var(--text2)">El incremento del 34% requiere una auditoría presencial para descartar pérdidas técnicas o hurto de energía.</div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function markAll() {
+  document.querySelectorAll('.alert-item').forEach(el => el.style.opacity = '0.3');
+}
+</script>
+{% endblock %}

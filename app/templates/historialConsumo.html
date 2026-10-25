@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block page_title %}
+Historial de Consumos
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="/static/css/consumo.css">
+{% endblock %}
+
+{% block content %}
+
+<div class="table-card">
+
+    <div class="table-header">
+
+        <div>
+            <h2 class="table-title">
+                <i class="fa-solid fa-bolt"></i>
+                Registros de Consumo
+            </h2>
+
+            <p class="table-subtitle">
+                Visualiza y administra los consumos energéticos registrados.
+            </p>
+        </div>
+
+        <a href="/consumos/crear" class="btn-add">
+            <i class="fa-solid fa-plus"></i>
+            Nuevo Registro
+        </a>
+
+    </div>
+
+    <div class="table-responsive">
+
+        <table class="energy-table">
+
+            <thead>
+                <tr>
+                    <!-- <th>ID</th> -->
+                    <th>Localidad</th>
+                    <th>Barrio</th>
+                    <th>Consumo</th>
+                    <th>Mes</th>
+                    <th>Fecha</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for consumo in consumos %}
+
+                <tr>
+
+                    <!-- <td data-label="ID">#{{ consumo.id }}</td> -->
+
+                    <td data-label="Localidad">
+                        <span class="badge-location">
+                            {{ consumo.localidad }}
+                        </span>
+                    </td>
+
+                    <td data-label="Barrio">{{ consumo.barrio }}</td>
+
+                    <td data-label="consumo">
+                        <span class="kw-badge">
+                            {{ consumo.kw_consumo }} kWh
+                        </span>
+                    </td>
+
+                    <td data-label="mes">{{ consumo.mes }}</td>
+
+                    <td data-label="fecha">{{ consumo.fecha }}</td>
+
+                    <td data-label="acciones">
+
+                        <div class="table-actions">
+
+                            <a href="/consumos/editar/{{ consumo.id }}" class="btn-edit">
+                                <i class="fa-solid fa-pen"></i>
+                            </a>
+
+                            <button 
+                                class="btn-delete"
+                                onclick="confirmDelete({{ consumo.id }})"
+                            >
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+
+                        </div>
+
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+
+<!-- SWEET ALERT -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+// Capturar y mostrar mensajes de Flask con SweetAlert2
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      Swal.fire({
+          title: "{{ '¡Éxito!' if category == 'success' else '¡Error!' }}",
+          text: "{{ message }}",
+          icon: "{{ category }}", 
+          background: '#111827',
+          color: '#ffffff',
+          confirmButtonColor: '#22c55e'
+      });
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+function confirmDelete(id) {
+    Swal.fire({
+        title: '¿Eliminar registro?',
+        text: "Esta acción no se puede deshacer.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#22c55e',
+        cancelButtonColor: '#ef4444',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar',
+        background: '#111827',
+        color: '#ffffff'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = `/consumos/eliminar/${id}`;
+        }
+    });
+}
+</script>
+
+{% endblock %}

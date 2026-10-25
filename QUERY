@@ -1,0 +1,18 @@
+INSERT INTO consumo
+(id, localidad, barrio, kw_consumo, fecha, fecha_registro, mes, user_id)
+VALUES
+(3, 'Engativá', 'Ciudadela Colsubsidio', 185.50, '2026-02-15', '2026-01-16 08:30:00', 'Enero', 2),
+(4, 'Engativá', 'Ciudadela Colsubsidio', 220.75, '2026-03-15', '2026-01-16 09:00:00', 'Febrero', 2),
+(5, 'Engativá', 'Ciudadela Colsubsidio', 310.20, '2026-04-15', '2026-01-16 09:15:00', 'Marzo', 2),
+(6, 'Engativá', 'Ciudadela Colsubsidio', 145.80, '2026-05-15', '2026-01-16 10:00:00', 'Abril', 2),
+(7, 'Kennedy', 'Castilla', 275.40, '2026-02-15', '2026-01-16 10:30:00', 'Enero', 4),
+(8, 'Kennedy', 'Castilla', 198.60, '2026-03-15', '2026-02-16 08:00:00', 'Febrero', 4),
+(9, 'Bosa', 'Bosa San Pedro', 350.90, '2026-05-15', '2026-02-16 08:45:00', 'Abril', 5),
+(10, 'Bosa', 'Bosa San Pedro', 420.30, '2026-06-15', '2026-02-16 09:20:00', 'Mayo', 5),
+(11, 'Bosa', 'Bosa San Pedro', 165.25, '2026-07-15', '2026-02-16 10:10:00', 'Junio', 5),
+(12, 'Bosa', 'Bosa San Pedro', 130.70, '2026-08-15', '2026-02-16 11:00:00', 'Julio', 5),
+(13, 'Engativá', 'Garcés Navas', 240.50, '2026-03-15', '2026-03-16 08:15:00', 'Febrero', 3),
+(14, 'Engativá', 'Garcés Navas', 390.80, '2026-04-15', '2026-03-16 09:30:00', 'Marzo', 3),
+(15, 'Engativá', 'Garcés Navas', 210.40, '2026-05-15', '2026-03-16 10:20:00', 'Abril', 3),
+(16, 'Engativá', 'Garcés Navas', 295.65, '2026-06-15', '2026-03-16 11:15:00', 'Mayo', 3),
+(17, 'Engativá', 'Las Ferias', 115.90, '2026-04-15', '2026-03-16 11:45:00', 'Marzo', 1);

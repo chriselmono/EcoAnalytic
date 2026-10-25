@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="/static/css/dashboardUser.css">
+{% endblock %}
+
+{% block page_title %}
+Mi Consumo Energético
+{% endblock %}
+
+{% block content %}
+
+
+<div class="page-header">
+    <h1>Mi Consumo</h1>
+
+    <p>
+        Monitorea tu consumo energético mensual
+    </p>
+</div>
+
+
+<div class="stats-grid">
+
+    <div class="stat-card blue">
+
+        <div class="stat-icon">
+            <i class="fa-solid fa-bolt"></i>
+        </div>
+
+        <div class="stat-value">
+            {{ total_kwh }}
+        </div>
+
+        <div class="stat-label">
+            kWh registrados
+        </div>
+
+        <div class="stat-delta">
+            {{ variacion }} vs mes pasado
+        </div>
+
+    </div>
+
+    <div class="stat-card green">
+
+        <div class="stat-icon">
+            <i class="fa-solid fa-location-dot"></i>
+        </div>
+
+        <div class="stat-value">
+            {{ zonas|length }}
+        </div>
+
+        <div class="stat-label">
+            Zonas registradas
+        </div>
+
+    </div>
+
+    <div class="stat-card red">
+
+        <div class="stat-icon">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+
+        <div class="stat-value">
+            {{ alertas|length }}
+        </div>
+
+        <div class="stat-label">
+            Alertas de consumo
+        </div>
+
+    </div>
+
+</div>
+
+
+<div class="card">
+
+    <div class="card-title">
+        <i class="fa-solid fa-chart-column"></i>
+        Consumo mensual
+    </div>
+
+    <div class="chart-wrapper">
+        <canvas id="chartConsumo"></canvas>
+    </div>
+
+</div>
+
+<div class="card" style="margin-top:20px">
+
+    <div class="card-title">
+
+        <i class="fa-solid fa-table"></i>
+
+        Mis registros
+
+        <a href="{{ url_for('consumo.listar_consumos') }}"
+           class="btn btn-primary"
+           style="margin-left:auto">
+            Registro Completos
+        </a>
+
+        <a href="{{ url_for('consumo.crear_consumo') }}"
+           class="btn btn-success">
+           <i class="fa-solid fa-plus"></i>
+
+            Registrar consumo
+
+        </a>
+
+    </div>
+<div class="table-responsive-sm">
+    <table class="table energy-table">
+
+        <thead>
+            <tr>
+                <th>Fecha consumo</th>
+                <th>Fecha registro</th>
+                <th>Localidad</th>
+                <th>Barrio</th>
+                <th>kWh</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+            {% for c in consumos %}
+
+            <tr>
+
+                <td>
+                    {{ c.fecha }}
+                </td>
+
+                <td>
+                    {{ c.fecha_registro.strftime('%d/%m/%Y %H:%M') }}
+                </td>
+
+                <td>
+                    {{ c.localidad }}
+                </td>
+
+                <td>
+                    {{ c.barrio }}
+                </td>
+
+                <td>
+                    {{ c.kw_consumo }}
+                </td>
+
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+    </div>
+
+</div>
+
+{% endblock %}
+
+
+{% block scripts %}
+
+<script>
+
+const consumoMensual = {{ consumo_mensual | tojson }};
+
+new Chart(
+    document.getElementById('chartConsumo'),
+    {
+
+        type: 'line',
+
+        data: {
+
+            labels: consumoMensual.map(
+                c => c.mes
+            ),
+
+            datasets: [{
+
+                label: 'kWh',
+
+                data: consumoMensual.map(
+                    c => c.kwh
+                ),
+
+                tension: .4,
+                fill: true
+
+            }]
+        }
+    }
+);
+
+</script>
+
+{% endblock %}

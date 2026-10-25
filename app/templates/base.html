@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EnergiaBog – Gestión Energética Bogotá</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="/static/css/style.css" />
+  {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">
+        <div class="logo-icon"><i class="fa-solid fa-bolt"></i></div>
+        <div class="logo-text">
+          <span class="logo-title">EcoAnalytic</span>
+          <span class="logo-sub">Bogotá D.C.</span>
+        </div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <!-- ADMIN -->
+
+      {% if session['rol'] == True %}
+
+      <div class="nav-section-label">
+        Principal
+      </div>
+
+      <a href="/dashboard" class="nav-item {% if page=='dashboard' %}active{% endif %}">
+
+        <i class="fa-solid fa-gauge-high"></i>
+        <span>Dashboard</span>
+
+      </a>
+
+      <a href="/prediccion" class="nav-item {% if page=='mapa' %}active{% endif %}">
+
+        <i class="fa-solid fa-map-location-dot"></i>
+        <span>Predicción de Consumo</span>
+
+      </a>
+
+      <div class="nav-section-label">
+        Gestión
+      </div>
+
+      <a href="/usuarios" class="nav-item {% if page=='usuarios' %}active{% endif %}">
+
+        <i class="fa-solid fa-users"></i>
+        <span>Usuarios / Hogares</span>
+
+      </a>
+
+      <a href="/reportes" class="nav-item {% if page=='reportes' %}active{% endif %}">
+
+        <i class="fa-solid fa-chart-line"></i>
+        <span>Reportes</span>
+
+      </a>
+
+      <a href="/alertas" class="nav-item {% if page=='alertas' %}active{% endif %}">
+
+        <i class="fa-solid fa-bell"></i>
+        <span>Alertas</span>
+
+        <span class="badge">3</span>
+
+      </a>
+      <!-- USUARIO NORMAL -->
+      {% else %}
+
+      <div class="nav-section-label">
+        Mi Energía
+      </div>
+
+      <a href="/miDashboard" class="nav-item {% if page=='mi_consumo' %}active{% endif %}">
+
+        <i class="fa-solid fa-house-bolt"></i>
+        <span>Mi Consumo</span>
+
+      </a>
+
+      <a href="/consumos/crear" class="nav-item {% if page=='registrar' %}active{% endif %}">
+
+        <i class="fa-solid fa-plus"></i>
+        <span>Registrar Consumo</span>
+
+      </a>
+
+      <a href="/consumos" class="nav-item {% if page=='historial' %}active{% endif %}">
+
+        <i class="fa-solid fa-clock-rotate-left"></i>
+        <span>Historial</span>
+
+      </a>
+
+      <a href="/mis-alertas" class="nav-item {% if page=='mis_alertas' %}active{% endif %}">
+
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <span>Mis Alertas</span>
+
+      </a>
+
+      {% endif %}
+
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-card">
+        {% if session['foto'] %}
+      <!-- Si el usuario tiene foto (Google), se muestra la imagen circular -->
+      <img src="{{ session['foto'] }}" alt="Avatar" class="user-avatar-img">
+    {% else %}
+      <!-- Si no tiene foto (Login tradicional), se muestran sus iniciales -->
+      <div class="user-avatar">
+        {{ session['user_nombre'][:2] | upper }}
+      </div>
+    {% endif %}
+
+    <div class="user-info">
+      <span class="user-name">
+        {{ session['nombre'] }}
+      </span>
+
+      <span class="user-role">
+        {% if session['rol'] == 1 %} <!-- Cambiado a == 1 según tu backend -->
+        Administrador
+        {% else %}
+        Usuario
+        {% endif %}
+      </span>
+    </div>
+    <i class="fa-solid fa-ellipsis-vertical"></i>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main-content">
+    <header class="topbar">
+      <button class="sidebar-toggle" onclick="toggleSidebar()">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+      <div class="topbar-title">{% block page_title %}{% endblock %}</div>
+      <div class="topbar-actions">
+        <div class="search-box">
+          <i class="fa-solid fa-search"></i>
+          <input type="text" placeholder="Buscar zona, usuario..." />
+        </div>
+        <button class="icon-btn"><i class="fa-solid fa-bell"></i><span class="dot"></span></button>
+        <div class="settings-dropdown">
+  <button class="icon-btn" onclick="toggleSettingsMenu()">
+    <i class="fa-solid fa-gear"></i>
+  </button>
+
+  <div class="dropdown-menu" id="settingsMenu">
+    <a href="/logout" class="dropdown-item">
+      <i class="fa-solid fa-right-from-bracket"></i>
+      Cerrar sesión
+    </a>
+  </div>
+</div>
+      </div>
+    </header>
+
+    <div class="page-body">
+      {% block content %}{% endblock %}
+    </div>
+  </main>
+
+  <script src="/static/js/main.js"></script>
+  {% block scripts %}{% endblock %}
+</body>
+
+</html>

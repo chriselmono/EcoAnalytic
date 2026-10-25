@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block page_title %}Mapa de Consumo por Zonas{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<div class="page-header">
+  <h1>Mapa de Consumo</h1>
+  <p>Visualización geográfica del consumo energético por zona – Bogotá D.C.</p>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 300px;gap:16px;align-items:start">
+  <div>
+    <div id="map-container"></div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:12px">
+    <!-- Leyenda -->
+    <div class="card">
+      <div class="card-title"><i class="fa-solid fa-circle-info"></i> Leyenda</div>
+      <div style="display:flex;flex-direction:column;gap:8px;font-size:13px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="width:14px;height:14px;border-radius:50%;background:#ef4444;flex-shrink:0"></div>
+          <span>Alto (>85% capacidad)</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="width:14px;height:14px;border-radius:50%;background:#f59e0b;flex-shrink:0"></div>
+          <span>Medio (65–85%)</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="width:14px;height:14px;border-radius:50%;background:#10b981;flex-shrink:0"></div>
+          <span>Bajo (&lt;65%)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lista zonas -->
+    <div class="card">
+      <div class="card-title"><i class="fa-solid fa-list"></i> Todas las Zonas</div>
+      {% for z in zonas %}
+      {% set pct = ((z.consumo / z.capacidad) * 100)|int %}
+      {% set color = '#ef4444' if pct > 85 else ('#f59e0b' if pct > 65 else '#10b981') %}
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px"
+           onclick="map.setView([{{ z.lat }}, {{ z.lng }}], 14)" style="cursor:pointer">
+        <div style="display:flex;align-items:center;gap:8px;cursor:pointer" onclick="map.setView([{{ z.lat }}, {{ z.lng }}], 14)">
+          <div style="width:8px;height:8px;border-radius:50%;background:{{ color }};flex-shrink:0"></div>
+          <span>{{ z.nombre }}</span>
+        </div>
+        <span style="font-family:var(--font-mono);font-size:12px;color:var(--text2)">{{ pct }}%</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<script>
+const zonas = {{ zonas | tojson }};
+
+const map = L.map('map-container', {
+  center: [4.657, -74.107],
+  zoom: 11,
+  zoomControl: true
+});
+
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+  attribution: '© OpenStreetMap © CARTO',
+  subdomains: 'abcd', maxZoom: 19
+}).addTo(map);
+
+zonas.forEach(z => {
+  const pct = Math.round((z.consumo / z.capacidad) * 100);
+  const color = pct > 85 ? '#ef4444' : pct > 65 ? '#f59e0b' : '#10b981';
+  const radius = 600 + (z.consumo / 100);
+
+  const circle = L.circle([z.lat, z.lng], {
+    color: color, fillColor: color,
+    fillOpacity: 0.35, weight: 2, radius: radius
+  }).addTo(map);
+
+  circle.bindPopup(`
+    <div style="font-family:DM Sans,sans-serif;min-width:200px">
+      <div style="font-weight:700;font-size:15px;margin-bottom:6px">${z.nombre}</div>
+      <div style="font-size:13px;color:#555;margin-bottom:8px">Consumo: <strong>${z.consumo.toLocaleString()} kWh</strong></div>
+      <div style="font-size:13px;color:#555;margin-bottom:8px">Capacidad: ${z.capacidad.toLocaleString()} kWh</div>
+      <div style="background:#eee;border-radius:4px;height:8px;overflow:hidden">
+        <div style="width:${pct}%;height:100%;background:${color};border-radius:4px"></div>
+      </div>
+      <div style="font-size:13px;margin-top:4px;text-align:right;font-weight:600">${pct}% utilización</div>
+    </div>
+  `);
+});
+</script>
+{% endblock %}

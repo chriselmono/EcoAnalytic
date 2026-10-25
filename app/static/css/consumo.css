@@ -1,0 +1,200 @@
+
+.table-card {
+    background: #111827;
+    border-radius: 20px;
+    padding: 30px;
+    border: 1px solid rgba(255,255,255,0.05);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+.table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.table-title {
+    color: #fff;
+    font-size: 1.6rem;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.table-subtitle {
+    color: #9ca3af;
+    font-size: 0.95rem;
+}
+
+.btn-add {
+    background: #22c55e;
+    color: white;
+    text-decoration: none;
+    padding: 14px 20px;
+    border-radius: 12px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: 0.3s ease;
+}
+
+.btn-add:hover {
+    background: #16a34a;
+}
+
+.table-responsive {
+    width: 100%;
+}
+
+.energy-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.energy-table thead {
+    background: #1f2937;
+}
+
+.energy-table th {
+    color: #d1d5db;
+    padding: 18px;
+    text-align: left;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.energy-table td {
+    padding: 18px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    color: #f9fafb;
+}
+
+.energy-table tbody tr {
+    transition: 0.3s ease;
+}
+
+.energy-table tbody tr:hover {
+    background: rgba(255,255,255,0.03);
+}
+
+.badge-location {
+    background: rgba(59,130,246,0.15);
+    color: #60a5fa;
+    padding: 8px 12px;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.kw-badge {
+    background: rgba(34,197,94,0.15);
+    color: #4ade80;
+    padding: 8px 12px;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.table-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-edit,
+.btn-delete {
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    color: white;
+    font-size: 0.9rem;
+    transition: 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+}
+
+.btn-edit {
+    background: #3b82f6;
+}
+
+.btn-edit:hover {
+    background: #2563eb;
+}
+
+.btn-delete {
+    background: #ef4444;
+}
+
+.btn-delete:hover {
+    background: #dc2626;
+}
+
+/* =========================
+   MOBILE RESPONSIVE
+========================= */
+
+@media (max-width: 768px) {
+
+    .table-card {
+        padding: 20px;
+    }
+
+    .table-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .btn-add {
+        justify-content: center;
+    }
+
+    .energy-table,
+    .energy-table tbody,
+    .energy-table tr,
+    .energy-table td {
+        display: block;
+        width: 100%;
+    }
+
+    .energy-table thead {
+        display: none;
+    }
+
+    .energy-table tr {
+        background: #1f2937;
+        margin-bottom: 18px;
+        border-radius: 16px;
+        padding: 15px;
+        border: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .energy-table td {
+        border: none;
+        padding: 12px 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        font-size: 0.92rem;
+    }
+
+    .energy-table td::before {
+        content: attr(data-label);
+        font-weight: 700;
+        color: #9ca3af;
+    }
+
+    .table-actions {
+        justify-content: flex-end;
+        width: 100%;
+    }
+
+}

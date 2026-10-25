@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="/static/css/registroConsumo.css">
+<link rel="stylesheet" href="/static/css/prediccion.css">
+{% endblock %}
+
+{% block page_title %}
+Predicción de Consumo
+{% endblock %}
+
+{% block content %}
+
+<div class="content-card">
+
+    <div class="card-header">
+        <div>
+            <h2 class="card-title">
+                <i class="fa-solid fa-chart-line"></i>
+                Consumo esperado por localidad
+            </h2>
+        </div>
+    </div>
+
+    <div class="ml-status" id="ml-status">
+        <div><strong id="st-registros">–</strong> registros en la base</div>
+        <div><strong id="st-modelo">–</strong> estado del modelo</div>
+        <div><strong id="st-precision">–</strong> precisión en prueba</div>
+    </div>
+
+    <div class="ml-actions">
+        <button type="button" class="btn-secondary mt-3" id="btn-entrenar">
+            <i class="fa-solid fa-gears"></i>
+            Entrenar modelo
+        </button>
+        <button type="button" class="btn-primary mt-2" id="btn-predecir">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+            Predecir próximo mes
+        </button>
+    </div>
+
+    <div id="ml-message" class="ml-message" hidden aria-live="polite"></div>
+
+    <div id="ml-results" hidden>
+        <div class="ml-summary" id="ml-summary"></div>
+
+        <div class="ml-table-wrap">
+            <table class="ml-table">
+                <thead>
+                    <tr>
+                        <th>Localidad</th>
+                        <th>Mes</th>
+                        <th class="num">Último promedio (kWh)</th>
+                        <th>Consumo esperado</th>
+                        <th class="num">Referencia (kWh)</th>
+                        <th>Acción sugerida</th>
+                    </tr>
+                </thead>
+                <tbody id="ml-body"></tbody>
+            </table>
+        </div>
+
+        <p class="ml-note" id="ml-note"></p>
+    </div>
+
+</div>
+
+<script>
+    (function () {
+        const $ = (id) => document.getElementById(id);
+        const ACCIONES = {
+            Alto: "Priorizar: revisar tarifas diferenciales, campañas de ahorro e inspección.",
+            Medio: "Monitorear y reforzar campañas de uso eficiente.",
+            Bajo: "Mantener seguimiento; sin medidas urgentes."
+        };
+
+        function mensaje(ok, texto) {
+            const m = $("ml-message");
+            m.hidden = false;
+            m.className = "ml-message " + (ok ? "is-ok" : "is-error");
+            m.textContent = texto;
+        }
+
+        function setLoading(btn, on) {
+            btn.disabled = on;
+        }
+
+        async function cargarEstado() {
+            try {
+                const r = await fetch("/ml/estado");
+                const d = await r.json();
+                $("st-registros").textContent = d.registros_bd;
+                $("st-modelo").textContent = d.entrenado ? "Entrenado" : "Sin entrenar";
+                $("st-precision").textContent = d.precision !== null ? d.precision + " %" : "–";
+            } catch (e) { /* el estado es informativo */ }
+        }
+
+        function celda(texto, clase) {
+            const td = document.createElement("td");
+            td.textContent = texto;
+            if (clase) td.className = clase;
+            return td;
+        }
+
+        
+function pintar(data) {
+    const cuerpo = $("ml-body");
+    cuerpo.replaceChildren();
+
+    const conteo = {
+        Extremo: 0,
+        Alto: 0,
+        Medio: 0,
+        Bajo: 0
+    };
+
+    data.resultados.forEach(p => {
+        const categoria = p.Prediccion;
+        conteo[categoria]++;
+
+        const tr = document.createElement("tr");
+
+        tr.appendChild(celda(p.Localidad));
+
+        tr.appendChild(celda(p.Periodo_Predicho));
+
+        tr.appendChild(
+            celda(Number(p.Consumo_Actual_kWh).toFixed(2), "num")
+        );
+
+        const tdCat = document.createElement("td");
+        const badge = document.createElement("span");
+
+        badge.className = "badge badge-" + categoria.toLowerCase();
+        badge.textContent = categoria;
+        tdCat.appendChild(badge);
+
+        const prob = document.createElement("span");
+        prob.className = "ml-hint";
+        prob.textContent = Object.entries(p.Probabilidades)
+            .map(([k, v]) => `${k}: ${v}%`)
+            .join(" · ");
+
+        tdCat.appendChild(document.createElement("br"));
+        tdCat.appendChild(prob);
+        tr.appendChild(tdCat);
+
+        tr.appendChild(celda(p.Registros_Mes, "num"));
+
+        const acciones = {
+            Extremo: "Priorizar revisión y medidas preventivas de ahorro.",
+            Alto: "Revisar el comportamiento y reforzar campañas de ahorro.",
+            Medio: "Monitorear el consumo y promover el uso eficiente.",
+            Bajo: "Mantener seguimiento periódico."
+        };
+
+        tr.appendChild(celda(acciones[categoria] || "Revisar datos."));
+        cuerpo.appendChild(tr);
+    });
+
+    const resumen = $("ml-summary");
+    resumen.replaceChildren();
+
+    [
+        ["Extremo", "localidades con consumo extremo"],
+        ["Alto", "localidades con consumo alto"],
+        ["Medio", "localidades con consumo medio"],
+        ["Bajo", "localidades con consumo bajo"]
+    ].forEach(([categoria, texto]) => {
+        const div = document.createElement("div");
+        const strong = document.createElement("strong");
+
+        strong.textContent = conteo[categoria];
+        div.appendChild(strong);
+        div.appendChild(document.createTextNode(" " + texto));
+        resumen.appendChild(div);
+    });
+
+    $("ml-note").textContent =
+        "La categoría corresponde a una predicción basada en el historial " +
+        "de consumo de cada localidad. El consumo mostrado es el último " +
+        "consumo mensual registrado, no el consumo futuro exacto. " +
+        "Las probabilidades son estimaciones del modelo.";
+
+    $("ml-results").hidden = false;
+}
+
+
+        $("btn-entrenar").addEventListener("click", async (ev) => {
+            const btn = ev.currentTarget;
+            setLoading(btn, true);
+            try {
+                const r = await fetch("/prediccion/entrenar", {
+                    method: "POST"
+                });
+                const d = await r.json();
+                if (d.success) {
+                    mensaje(true, "Modelo entrenado. Precisión en prueba: " + d.precision + " % (" +
+                        d.registros_entrenamiento + " observaciones de entrenamiento, " +
+                        d.registros_prueba + " de prueba).");
+                } else {
+                    mensaje(false, d.mensaje);
+                }
+                cargarEstado();
+            } catch (e) {
+                mensaje(false, "No se pudo conectar con el servidor.");
+            } finally { setLoading(btn, false); }
+        });
+
+        $("btn-predecir").addEventListener("click", async (ev) => {
+            const btn = ev.currentTarget;
+            setLoading(btn, true);
+            try {
+                const r = await fetch("/prediccion/predecir", {
+                    method: "POST"
+                });
+                const d = await r.json();
+                if (d.success) {
+                    $("ml-message").hidden = true;
+                    pintar(d);
+                } else {
+                    $("ml-results").hidden = true;
+                    mensaje(false, d.mensaje);
+                }
+            } catch (e) {
+                mensaje(false, "No se pudo conectar con el servidor.");
+            } finally { setLoading(btn, false); }
+        });
+
+        cargarEstado();
+    })();
+</script>
+
+{% endblock %}

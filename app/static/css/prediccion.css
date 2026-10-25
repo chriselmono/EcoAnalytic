@@ -1,0 +1,298 @@
+
+/* ========================================
+   MÓDULO DE PREDICCIÓN DE CONSUMO
+   ======================================== */
+
+/* Encabezado */
+.content-card {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.card-header {
+    margin-bottom: 24px;
+}
+
+.card-title {
+    color: #ffffff;
+    font-size: 1.6rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.card-title i {
+    color: #22c55e;
+}
+
+/* ========================================
+   ESTADO DEL MODELO
+   ======================================== */
+
+.ml-status {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+    margin: 25px 0;
+}
+
+.ml-status > div {
+    background: #1f2937;
+    border: 1px solid #374151;
+    border-radius: 14px;
+    padding: 20px;
+    color: #9ca3af;
+    font-size: 0.9rem;
+}
+
+.ml-status strong {
+    display: block;
+    color: #ffffff;
+    font-size: 1.5rem;
+    margin-bottom: 7px;
+}
+
+/* ========================================
+   BOTONES
+   ======================================== */
+
+.ml-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin: 25px 0;
+}
+
+.ml-actions .btn-primary,
+.ml-actions .btn-secondary {
+    margin-top: 0;
+    min-height: 48px;
+    justify-content: center;
+}
+
+.ml-actions button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* ========================================
+   MENSAJES DEL SISTEMA
+   ======================================== */
+
+.ml-message {
+    padding: 15px 18px;
+    margin: 20px 0;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+.ml-message[hidden],
+#ml-results[hidden] {
+    display: none !important;
+}
+
+.ml-message.is-ok {
+    background: rgba(34, 197, 94, 0.12);
+    border: 1px solid rgba(34, 197, 94, 0.4);
+    color: #86efac;
+}
+
+.ml-message.is-error {
+    background: rgba(239, 68, 68, 0.12);
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    color: #fca5a5;
+}
+
+/* ========================================
+   RESUMEN DE PREDICCIONES
+   ======================================== */
+
+.ml-summary {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+    margin: 25px 0;
+}
+
+.ml-summary > div {
+    background: #1f2937;
+    border: 1px solid #374151;
+    border-radius: 12px;
+    padding: 18px;
+    color: #9ca3af;
+    font-size: 0.85rem;
+    line-height: 1.5;
+}
+
+.ml-summary strong {
+    display: block;
+    color: #ffffff;
+    font-size: 1.8rem;
+    margin-bottom: 5px;
+}
+
+/* ========================================
+   TABLA DE RESULTADOS
+   ======================================== */
+
+.ml-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+    margin-top: 20px;
+    border: 1px solid #374151;
+    border-radius: 14px;
+    background: #111827;
+}
+
+.ml-table {
+    width: 100%;
+    min-width: 850px;
+    border-collapse: collapse;
+    color: #d1d5db;
+    font-size: 0.9rem;
+}
+
+.ml-table thead {
+    background: #1f2937;
+}
+
+.ml-table th {
+    color: #f9fafb;
+    font-weight: 600;
+    text-align: left;
+    padding: 16px;
+    border-bottom: 1px solid #374151;
+    white-space: nowrap;
+}
+
+.ml-table td {
+    padding: 16px;
+    border-bottom: 1px solid #273449;
+    vertical-align: top;
+    line-height: 1.5;
+}
+
+.ml-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.ml-table tbody tr:hover {
+    background: rgba(55, 65, 81, 0.35);
+}
+
+.ml-table .num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+/* ========================================
+   ETIQUETAS DE CATEGORÍA
+   ======================================== */
+
+.ml-table .badge {
+    display: inline-block;
+    padding: 6px 11px;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    white-space: nowrap;
+    margin-bottom: 5px;
+}
+
+.badge-bajo {
+    background: rgba(34, 197, 94, 0.15);
+    color: #86efac;
+    border: 1px solid rgba(34, 197, 94, 0.35);
+}
+
+.badge-medio {
+    background: rgba(234, 179, 8, 0.15);
+    color: #fde047;
+    border: 1px solid rgba(234, 179, 8, 0.35);
+}
+
+.badge-alto {
+    background: rgba(249, 115, 22, 0.15);
+    color: #fdba74;
+    border: 1px solid rgba(249, 115, 22, 0.35);
+}
+
+.badge-extremo {
+    background: rgba(239, 68, 68, 0.15);
+    color: #fca5a5;
+    border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+/* Probabilidades y texto auxiliar */
+.ml-hint {
+    display: block;
+    color: #9ca3af;
+    font-size: 0.78rem;
+    margin-top: 6px;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+}
+
+.ml-note {
+    margin-top: 18px;
+    padding: 14px 16px;
+    background: #1f2937;
+    border-left: 4px solid #22c55e;
+    border-radius: 8px;
+    color: #9ca3af;
+    font-size: 0.88rem;
+    line-height: 1.6;
+}
+
+/* ========================================
+   ADAPTACIÓN A TABLET Y MÓVILES
+   ======================================== */
+
+@media (max-width: 900px) {
+    .ml-summary {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .ml-status {
+        grid-template-columns: 1fr;
+    }
+
+    .ml-status > div {
+        padding: 15px;
+    }
+}
+
+@media (max-width: 600px) {
+    .content-card {
+        padding: 18px;
+    }
+
+    .card-title {
+        font-size: 1.25rem;
+    }
+
+    .ml-actions {
+        flex-direction: column;
+    }
+
+    .ml-actions button {
+        width: 100%;
+    }
+
+    .ml-summary {
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+
+    .ml-summary > div {
+        padding: 13px;
+    }
+
+    .ml-summary strong {
+        font-size: 1.5rem;
+    }
+}
