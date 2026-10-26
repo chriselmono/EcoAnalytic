@@ -99,10 +99,22 @@ def editar_consumo(id):
             ConsumoService.editar_consumo(id, data, session["user_id"])
         except ValueError as error:
             flash(str(error), "error")
-            return redirect(url_for("consumo.editar_consumo", id=id))
+            return render_template(
+                "editarConsumo.html",
+                consumo=consumo,
+                localidades=ConsumoService.LOCALIDADES_BOGOTA,
+                page="historial",
+                form_data=data,
+            )
         except Exception:
             flash("No se pudieron guardar los cambios. Inténtalo de nuevo.", "error")
-            return redirect(url_for("consumo.editar_consumo", id=id))
+            return render_template(
+                "editarConsumo.html",
+                consumo=consumo,
+                localidades=ConsumoService.LOCALIDADES_BOGOTA,
+                page="historial",
+                form_data=data,
+            )
 
         flash("Consumo actualizado correctamente.", "success")
         return redirect(url_for("consumo.listar_consumos"))
