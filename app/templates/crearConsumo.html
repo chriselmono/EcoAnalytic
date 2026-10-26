@@ -42,7 +42,10 @@ Registrar Consumo Energético
                     <i class="fa-solid fa-map"></i> Barrio
                 </label>
                 <input type="text" name="barrio" id="barrio"
-                    minlength="2" maxlength="255" placeholder="Ej: Castilla"
+                    minlength="4" maxlength="255" placeholder="Ej: Castilla"
+                    placeholder="Ej: Castilla"
+                    pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+"
+                    title="Ingresa únicamente letras, tildes, ñ y espacios. No se permiten números ni caracteres especiales."
                     required>
             </div>
 
@@ -79,7 +82,7 @@ Registrar Consumo Energético
                     <i class="fa-solid fa-people-roof"></i> Personas en la vivienda
                 </label>
                 <input type="number" name="personas_vivienda" id="personas_vivienda"
-                    min="1" max="1000" step="1" placeholder="Ej: 3" required>
+                    min="1" max="20" step="1" placeholder="Ej: 3" required>
             </div>
         </div>
 
