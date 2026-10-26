@@ -144,13 +144,20 @@ class MineriaService:
         }
         datos["grupo"] = datos["grupo_original"].map(mapa_grupos)
 
+        if cantidad_grupos == 2:
+            niveles = ["Bajo", "Alto"]
+        elif cantidad_grupos == 3:
+            niveles = ["Bajo", "Medio", "Alto"]
+        else:
+            niveles = [f"Nivel {grupo}" for grupo in range(1, cantidad_grupos + 1)]
+
         resumen = []
         for grupo in range(1, cantidad_grupos + 1):
             miembros = datos[datos["grupo"] == grupo]
             resumen.append(
                 {
                     "grupo": grupo,
-                    "nombre": f"Grupo {grupo} (consumo por persona de menor a mayor)",
+                    "nombre": f"Grupo {grupo} - {niveles[grupo - 1]} consumo por persona",
                     "viviendas": int(len(miembros)),
                     "consumo_promedio_kwh": round(
                         float(miembros["kw_consumo"].mean()), 2
