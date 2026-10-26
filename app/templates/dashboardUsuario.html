@@ -118,7 +118,7 @@ Mi Consumo Energético
 
         <thead>
             <tr>
-                <th>Fecha consumo</th>
+                <th>Periodo facturado</th>
                 <th>Fecha registro</th>
                 <th>Localidad</th>
                 <th>Barrio</th>
@@ -133,7 +133,7 @@ Mi Consumo Energético
             <tr>
 
                 <td>
-                    {{ c.fecha }}
+                    {{ c.periodo_consumo.strftime('%Y-%m') if c.periodo_consumo else 'Sin periodo' }}
                 </td>
 
                 <td>
