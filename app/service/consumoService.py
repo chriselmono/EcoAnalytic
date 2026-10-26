@@ -46,26 +46,23 @@ class ConsumoService:
         return {"success": True}
 
     @staticmethod
-    def total_kwh(user_id):
-        total = (
-            db.session.query(func.sum(Consumo.kw_consumo))
-            .filter(Consumo.user_id == user_id)
-            .scalar()
-        )
-        return float(total or 0)
+    def total_kwh(user_id=None):
+        consulta = db.session.query(func.sum(Consumo.kw_consumo))
+        if user_id is not None:
+            consulta = consulta.filter(Consumo.user_id == user_id)
+        return float(consulta.scalar() or 0)
 
     @staticmethod
-    def consumo_mensual(user_id):
+    def consumo_mensual(user_id=None):
+        consulta = db.session.query(
+            Consumo.periodo_consumo,
+            func.sum(Consumo.kw_consumo),
+        ).filter(Consumo.periodo_consumo.isnot(None))
+        if user_id is not None:
+            consulta = consulta.filter(Consumo.user_id == user_id)
+
         resultados = (
-            db.session.query(
-                Consumo.periodo_consumo,
-                func.sum(Consumo.kw_consumo),
-            )
-            .filter(
-                Consumo.user_id == user_id,
-                Consumo.periodo_consumo.isnot(None),
-            )
-            .group_by(Consumo.periodo_consumo)
+            consulta.group_by(Consumo.periodo_consumo)
             .order_by(Consumo.periodo_consumo)
             .all()
         )
@@ -78,17 +75,15 @@ class ConsumoService:
         ]
 
     @staticmethod
-    def consumo_por_zona(user_id):
-        resultados = (
-            db.session.query(
-                Consumo.localidad,
-                func.sum(Consumo.kw_consumo),
-            )
-            .filter(Consumo.user_id == user_id)
-            .group_by(Consumo.localidad)
-            .all()
+    def consumo_por_zona(user_id=None):
+        consulta = db.session.query(
+            Consumo.localidad,
+            func.sum(Consumo.kw_consumo),
         )
+        if user_id is not None:
+            consulta = consulta.filter(Consumo.user_id == user_id)
 
+        resultados = consulta.group_by(Consumo.localidad).all()
         zonas = []
         for nombre, consumo in resultados:
             consumo_val = float(consumo or 0)
@@ -110,16 +105,18 @@ class ConsumoService:
         return Consumo.query.filter_by(id=id, user_id=user_id).first()
 
     @staticmethod
-    def ultimos_consumos(user_id):
+    def ultimos_consumos(user_id=None):
+        consulta = Consumo.query
+        if user_id is not None:
+            consulta = consulta.filter(Consumo.user_id == user_id)
         return (
-            Consumo.query.filter_by(user_id=user_id)
-            .order_by(Consumo.periodo_consumo.desc())
+            consulta.order_by(Consumo.periodo_consumo.desc())
             .limit(10)
             .all()
         )
 
     @staticmethod
-    def variacion_mensual(user_id):
+    def variacion_mensual(user_id=None):
         hoy = datetime.now()
         mes_actual = hoy.month
         año_actual = hoy.year
@@ -130,23 +127,27 @@ class ConsumoService:
             mes_pasado = mes_actual - 1
             año_pasado = año_actual
 
+        filtros_actuales = [
+            extract("month", Consumo.periodo_consumo) == mes_actual,
+            extract("year", Consumo.periodo_consumo) == año_actual,
+        ]
+        filtros_pasados = [
+            extract("month", Consumo.periodo_consumo) == mes_pasado,
+            extract("year", Consumo.periodo_consumo) == año_pasado,
+        ]
+        if user_id is not None:
+            filtros_actuales.append(Consumo.user_id == user_id)
+            filtros_pasados.append(Consumo.user_id == user_id)
+
         actual = (
             db.session.query(func.sum(Consumo.kw_consumo))
-            .filter(
-                Consumo.user_id == user_id,
-                extract("month", Consumo.periodo_consumo) == mes_actual,
-                extract("year", Consumo.periodo_consumo) == año_actual,
-            )
+            .filter(*filtros_actuales)
             .scalar()
             or 0
         )
         pasado = (
             db.session.query(func.sum(Consumo.kw_consumo))
-            .filter(
-                Consumo.user_id == user_id,
-                extract("month", Consumo.periodo_consumo) == mes_pasado,
-                extract("year", Consumo.periodo_consumo) == año_pasado,
-            )
+            .filter(*filtros_pasados)
             .scalar()
             or 0
         )
@@ -160,11 +161,11 @@ class ConsumoService:
         return f"{round(variacion, 1)}%"
 
     @staticmethod
-    def obtener_alertas(user_id):
-        consumos = Consumo.query.filter(
-            Consumo.user_id == user_id,
-            Consumo.kw_consumo > 500,
-        ).all()
+    def obtener_alertas(user_id=None):
+        consulta = Consumo.query.filter(Consumo.kw_consumo > 500)
+        if user_id is not None:
+            consulta = consulta.filter(Consumo.user_id == user_id)
+        consumos = consulta.order_by(Consumo.periodo_consumo.desc()).all()
 
         return [
             {

@@ -1,125 +1,116 @@
 {% extends "base.html" %}
+
 {% block page_title %}Dashboard – Resumen General{% endblock %}
 
 {% block content %}
 <div class="page-header">
   <h1>Panel de Control</h1>
-  <p>Localidades de Bogotá</p>
+  <p>Resumen de consumos reportados por todos los usuarios en Bogotá</p>
 </div>
 
-<!-- Stats -->
 <div class="stats-grid">
   <div class="stat-card blue">
     <div class="stat-icon"><i class="fa-solid fa-bolt"></i></div>
     <div class="stat-value">{{ total_kwh }}</div>
-    <div class="stat-label">kWh consumidos</div>
-    <div class="stat-delta down"><i class="fa-solid fa-arrow-down"></i> {{ variacion }} vs mes pasado</div>
+    <div class="stat-label">kWh consumidos en total</div>
+    <div class="stat-delta"><i class="fa-solid fa-chart-line"></i> {{ variacion }} vs. periodo anterior</div>
   </div>
   <div class="stat-card green">
     <div class="stat-icon"><i class="fa-solid fa-map-location-dot"></i></div>
     <div class="stat-value">{{ zonas_activas }}</div>
-    <div class="stat-label">Zonas monitoreadas</div>
-    <!-- <div class="stat-delta up"><i class="fa-solid fa-circle-check"></i> Todas operativas</div> -->
+    <div class="stat-label">Localidades con reportes</div>
   </div>
   <div class="stat-card yellow">
     <div class="stat-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
     <div class="stat-value">{{ alertas_activas }}</div>
-    <div class="stat-label">Alertas activas</div>
-    <!-- <div class="stat-delta down"><i class="fa-solid fa-arrow-down"></i> 1 crítica sin resolver</div> -->
+    <div class="stat-label">Registros sobre 500 kWh</div>
   </div>
   <div class="stat-card red">
     <div class="stat-icon"><i class="fa-solid fa-users"></i></div>
-    <div class="stat-value">{{ total_usuarios_normales }}</div>
-    <div class="stat-label">Usuarios Registrados</div>
-    <!-- <div class="stat-delta up"><i class="fa-solid fa-arrow-up"></i> +2 respecto al turno anterior</div> -->
+    <div class="stat-value">{{ total_usuarios }}</div>
+    <div class="stat-label">Usuarios registrados</div>
   </div>
 </div>
 
-<!-- Charts Row -->
 <div class="charts-grid">
   <div class="card">
-    <div class="card-title"><i class="fa-solid fa-chart-bar"></i> Consumo Mensual (kWh) – 2026</div>
+    <div class="card-title"><i class="fa-solid fa-chart-bar"></i> Consumo mensual total (kWh)</div>
     <div class="chart-wrapper"><canvas id="chartMensual"></canvas></div>
   </div>
   <div class="card">
-    <div class="card-title"><i class="fa-solid fa-chart-pie"></i> Distribución por Zona</div>
+    <div class="card-title"><i class="fa-solid fa-chart-pie"></i> Consumo acumulado por localidad</div>
     <div class="chart-wrapper"><canvas id="chartZonas"></canvas></div>
   </div>
 </div>
 
-<!-- Bottom Row -->
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-  <!-- Zonas críticas -->
   <div class="card">
-    <div class="card-title"><i class="fa-solid fa-fire-flame-curved"></i> Zonas por Nivel de Carga</div>
+    <div class="card-title"><i class="fa-solid fa-fire-flame-curved"></i> Localidades por consumo</div>
     <div class="zone-list">
       {% for z in zonas[:6] %}
-      {% set pct = ((z.consumo / z.capacidad) * 100)|int %}
-      {% set cls = 'fill-red' if pct > 85 else ('fill-yellow' if pct > 65 else 'fill-green') %}
+      {% set pct = ((z.consumo / max_consumo_zona) * 100)|int if max_consumo_zona > 0 else 0 %}
       <div class="zone-item">
         <div class="zone-header">
           <span class="zone-name">{{ z.nombre }}</span>
-          <span class="zone-kwh">{{ z.consumo }} / {{ z.capacidad }} kWh &nbsp;<strong>{{ pct }}%</strong></span>
+          <span class="zone-kwh">{{ '%.2f'|format(z.consumo) }} kWh</span>
         </div>
         <div class="progress-bar-wrap">
-          <div class="progress-bar-fill {{ cls }}" style="width:{{ pct }}%"></div>
+          <div class="progress-bar-fill fill-green" style="width:{{ pct }}%"></div>
         </div>
       </div>
+      {% else %}
+      <p>No hay consumos registrados por localidad.</p>
       {% endfor %}
     </div>
   </div>
 
-  <!-- Alertas recientes -->
   <div class="card">
-    <div class="card-title"><i class="fa-solid fa-bell"></i> Alertas Recientes
-      <a href="/alertas"
-        style="margin-left:auto;font-size:12px;color:var(--primary-l);text-decoration:none;font-weight:500">Ver todas
-        →</a>
-    </div>
-    {% for a in alertas %}
+    <div class="card-title"><i class="fa-solid fa-bell"></i> Registros sobre 500 kWh</div>
+    {% for a in alertas[:6] %}
     <div class="alert-item {{ a.tipo }}">
       <div class="alert-dot"></div>
       <div class="alert-content">
         <div class="alert-title">{{ a.titulo }}</div>
         <div class="alert-desc">{{ a.desc }}</div>
         <div class="alert-meta">
-          <span><i class="fa-solid fa-clock"></i>{{ a.hora }}</span>
-          <span><i class="fa-solid fa-location-dot"></i>{{ a.zona }}</span>
+          <span><i class="fa-solid fa-calendar"></i> {{ a.hora }}</span>
+          <span><i class="fa-solid fa-location-dot"></i> {{ a.zona }}</span>
         </div>
       </div>
     </div>
+    {% else %}
+    <p>No hay registros por encima de 500 kWh.</p>
     {% endfor %}
   </div>
 
-  <div class="card" style="margin-top:20px">
-    <div class="card-title">
-      <i class="fa-solid fa-table"></i>
-      Últimos registros
+  <div class="card" style="margin-top:20px;grid-column:1 / -1">
+    <div class="card-title"><i class="fa-solid fa-table"></i> Últimos consumos de todos los usuarios</div>
+    <div class="table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Periodo facturado</th>
+            <th>Localidad</th>
+            <th>Barrio</th>
+            <th>Consumo</th>
+            <th>Usuario</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for c in ultimos_consumos %}
+          <tr>
+            <td>{{ c.periodo_consumo.strftime('%Y-%m') if c.periodo_consumo else 'Sin periodo' }}</td>
+            <td>{{ c.localidad }}</td>
+            <td>{{ c.barrio }}</td>
+            <td>{{ c.kw_consumo }} kWh</td>
+            <td>{{ c.usuario.nombre if c.usuario else 'Sin usuario' }}</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="5">No hay consumos registrados.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
-
-    <table class="table">
-      <thead>
-        <tr>
-          <th>Periodo facturado</th>
-          <th>Localidad</th>
-          <th>Barrio</th>
-          <th>Consumo</th>
-          <th>Usuario</th>
-        </tr>
-      </thead>
-
-      <tbody>
-        {% for c in ultimos_consumos %}
-        <tr>
-          <td>{{ c.periodo_consumo.strftime('%Y-%m') if c.periodo_consumo else 'Sin periodo' }}</td>
-          <td>{{ c.localidad }}</td>
-          <td>{{ c.barrio }}</td>
-          <td>{{ c.kw_consumo }} kWh</td>
-          <td>{{ c.usuario.usuario if c.usuario else 'Sin usuario' }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
   </div>
 </div>
 {% endblock %}
@@ -128,22 +119,28 @@
 <script>
   const meses = {{ consumo_mensual | tojson }};
   const zonas = {{ zonas | tojson }};
+  const ultimoMes = meses.length - 1;
 
-  // Bar chart consumo mensual
   new Chart(document.getElementById('chartMensual'), {
     type: 'bar',
     data: {
-      labels: meses.map(m => m.mes),
+      labels: meses.map(item => item.mes),
       datasets: [{
         label: 'kWh',
-        data: meses.map(m => m.kwh),
-        backgroundColor: meses.map((_, i) => i === 3 ? 'rgba(37,99,235,.9)' : 'rgba(37,99,235,.35)'),
-        borderColor: meses.map((_, i) => i === 3 ? '#3b82f6' : 'rgba(37,99,235,.4)'),
-        borderWidth: 1, borderRadius: 5
+        data: meses.map(item => item.kwh),
+        backgroundColor: meses.map((_, indice) =>
+          indice === ultimoMes ? 'rgba(37,99,235,.9)' : 'rgba(37,99,235,.35)'
+        ),
+        borderColor: meses.map((_, indice) =>
+          indice === ultimoMes ? '#3b82f6' : 'rgba(37,99,235,.4)'
+        ),
+        borderWidth: 1,
+        borderRadius: 5
       }]
     },
     options: {
-      responsive: true, maintainAspectRatio: false,
+      responsive: true,
+      maintainAspectRatio: false,
       plugins: { legend: { display: false } },
       scales: {
         x: { grid: { color: 'rgba(255,255,255,.04)' }, ticks: { color: '#8b95aa', font: { size: 11 } } },
@@ -152,19 +149,20 @@
     }
   });
 
-  // Doughnut zonas
   new Chart(document.getElementById('chartZonas'), {
     type: 'doughnut',
     data: {
-      labels: zonas.map(z => z.nombre),
+      labels: zonas.map(zona => zona.nombre),
       datasets: [{
-        data: zonas.map(z => z.consumo),
+        data: zonas.map(zona => zona.consumo),
         backgroundColor: ['#2563eb', '#10b981', '#f59e0b', '#ef4444', '#06b6d4', '#8b5cf6', '#ec4899', '#14b8a6'],
-        borderWidth: 2, borderColor: '#161b27'
+        borderWidth: 2,
+        borderColor: '#161b27'
       }]
     },
     options: {
-      responsive: true, maintainAspectRatio: false,
+      responsive: true,
+      maintainAspectRatio: false,
       plugins: {
         legend: { position: 'bottom', labels: { color: '#8b95aa', font: { size: 11 }, padding: 12 } }
       },
