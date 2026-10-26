@@ -42,6 +42,46 @@ class ConsumoService:
             raise
         return {"success": True}
 
+    @classmethod
+    def editar_consumo(cls, consumo_id, data, user_id):
+        """Actualiza un consumo propio con las mismas validaciones del registro."""
+        consumo = Consumo.query.filter_by(id=consumo_id, user_id=user_id).first()
+        if consumo is None:
+            raise ValueError("El consumo no existe o no tienes permiso para editarlo.")
+
+        datos = cls._validar_datos_consumo(data)
+        consumo.localidad = datos["localidad"]
+        consumo.barrio = datos["barrio"]
+        consumo.kw_consumo = datos["kw_consumo"]
+        consumo.periodo_consumo = datos["periodo_consumo"]
+        consumo.estrato = datos["estrato"]
+        consumo.personas_vivienda = datos["personas_vivienda"]
+
+        alertas_consumo_elevado = [
+            alerta for alerta in consumo.alertas
+            if alerta.titulo == "Consumo elevado"
+        ]
+        if consumo.kw_consumo > 500:
+            if alertas_consumo_elevado:
+                alerta = alertas_consumo_elevado[0]
+                alerta.descripcion = (
+                    f"Se registró un consumo de {consumo.kw_consumo} kWh"
+                )
+                for alerta_repetida in alertas_consumo_elevado[1:]:
+                    db.session.delete(alerta_repetida)
+            else:
+                cls._agregar_alerta_si_aplica(consumo)
+        else:
+            for alerta in alertas_consumo_elevado:
+                db.session.delete(alerta)
+
+        try:
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            raise
+        return {"success": True}
+
     @staticmethod
     def _parsear_periodo(periodo):
         if isinstance(periodo, datetime):
