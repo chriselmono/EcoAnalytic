@@ -26,7 +26,7 @@ Editar consumo
         {% if messages %}
         <div role="alert" aria-live="polite">
             {% for categoria, mensaje in messages %}
-            <div class="ml-message {{ 'is-ok' if categoria == 'success' else 'is-error' }}">
+            <div class="alert alert-{{ 'success' if categoria == 'success' else 'danger' }}" role="alert">
                 {{ mensaje }}
             </div>
             {% endfor %}
