@@ -10,9 +10,7 @@ Registrar Consumo Energético
 {% endblock %}
 
 {% block content %}
-
 <div class="content-card">
-
     <div class="card-header">
         <div>
             <h2 class="card-title">
@@ -25,309 +23,227 @@ Registrar Consumo Energético
         </div>
     </div>
 
-    <form action="/consumos/crear" method="POST" class="energy-form">
-
+    <form action="{{ url_for('consumo.crear_consumo') }}" method="POST" class="energy-form">
         <div class="form-grid">
-
             <div class="form-group">
                 <label for="localidad">
-                    <i class="fa-solid fa-location-dot"></i>
-                    Localidad
+                    <i class="fa-solid fa-location-dot"></i> Localidad
                 </label>
-
                 <select name="localidad" id="localidad" required>
                     <option value="" disabled selected>Seleccione una localidad</option>
-                    <option value="Usaquén">Usaquén</option>
-                    <option value="Chapinero">Chapinero</option>
-                    <option value="Santa Fe">Santa Fe</option>
-                    <option value="San Cristóbal">San Cristóbal</option>
-                    <option value="Usme">Usme</option>
-                    <option value="Tunjuelito">Tunjuelito</option>
-                    <option value="Bosa">Bosa</option>
-                    <option value="Kennedy">Kennedy</option>
-                    <option value="Fontibón">Fontibón</option>
-                    <option value="Engativá">Engativá</option>
-                    <option value="Suba">Suba</option>
-                    <option value="Barrios Unidos">Barrios Unidos</option>
-                    <option value="Teusaquillo">Teusaquillo</option>
-                    <option value="Los Mártires">Los Mártires</option>
-                    <option value="Antonio Nariño">Antonio Nariño</option>
-                    <option value="Puente Aranda">Puente Aranda</option>
-                    <option value="La Candelaria">La Candelaria</option>
-                    <option value="Rafael Uribe">Rafael Uribe</option>
-                    <option value="Ciudad Bolívar">Ciudad Bolívar</option>
-                    <option value="Sumapaz">Sumapaz</option>
+                    {% for localidad in localidades %}
+                    <option value="{{ localidad }}">{{ localidad }}</option>
+                    {% endfor %}
                 </select>
             </div>
 
             <div class="form-group">
                 <label for="barrio">
-                    <i class="fa-solid fa-map"></i>
-                    Barrio
+                    <i class="fa-solid fa-map"></i> Barrio
                 </label>
-
-                <input type="text" name="barrio" id="barrio" minlength="4" maxlength="50" placeholder="Ej: Castilla"
-                    pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+" title="Ingresa solo letras y espacios, sin números ni símbolos."
+                <input type="text" name="barrio" id="barrio"
+                    minlength="2" maxlength="255" placeholder="Ej: Castilla"
                     required>
             </div>
 
             <div class="form-group">
                 <label for="kw_consumo">
-                    <i class="fa-solid fa-bolt"></i>
-                    Consumo (kWh)
+                    <i class="fa-solid fa-bolt"></i> Consumo (kWh)
                 </label>
-
-                <input type="number" step="0.01" min="30" name="kw_consumo" id="kw_consumo" placeholder="Ej: 245.50"
+                <input type="number" step="0.01" min="30" max="99999999.99"
+                    name="kw_consumo" id="kw_consumo" placeholder="Ej: 245.50"
                     required>
             </div>
 
             <div class="form-group">
-                <div class="form-group">
                 <label for="periodo_consumo">
-                    <i class="fa-solid fa-calendar"></i>
-                    Periodo facturado (mes y año)
+                    <i class="fa-solid fa-calendar"></i> Periodo facturado (mes y año)
                 </label>
-
                 <input type="month" name="periodo_consumo" id="periodo_consumo" required>
             </div>
 
+            <div class="form-group">
+                <label for="estrato">
+                    <i class="fa-solid fa-house"></i> Estrato
+                </label>
+                <select name="estrato" id="estrato" required>
+                    <option value="" disabled selected>Seleccione un estrato</option>
+                    {% for valor in range(1, 7) %}
+                    <option value="{{ valor }}">{{ valor }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="personas_vivienda">
+                    <i class="fa-solid fa-people-roof"></i> Personas en la vivienda
+                </label>
+                <input type="number" name="personas_vivienda" id="personas_vivienda"
+                    min="1" max="1000" step="1" placeholder="Ej: 3" required>
+            </div>
         </div>
 
         <div class="form-actions">
             <button type="reset" class="btn-secondary">
-                <i class="fa-solid fa-rotate-left"></i>
-                Limpiar
+                <i class="fa-solid fa-rotate-left"></i> Limpiar
             </button>
-
             <button type="submit" class="btn-primary">
-                <i class="fa-solid fa-floppy-disk"></i>
-                Guardar Consumo
+                <i class="fa-solid fa-floppy-disk"></i> Guardar Consumo
             </button>
         </div>
-
     </form>
 </div>
 
-
-<div class="content-card bulk-card mt-5">
-
+<div class="content-card bulk-card mt-3">
     <div class="card-header">
         <div>
             <h2 class="card-title">
-                <i class="fa-solid fa-file-excel"></i>
-                Carga Masiva
+                <i class="fa-solid fa-file-excel"></i> Carga Masiva
             </h2>
             <p class="card-subtitle">
-                Registra muchos recibos a la vez con un archivo de Excel.
-                Estos datos también alimentan un modelo de predicción.
+                Descarga la plantilla, registra una fila por recibo y súbela para guardar
+                todos los consumos en tu cuenta.
             </p>
         </div>
     </div>
 
     <div class="bulk-grid">
-
         <div class="bulk-panel">
             <h3 class="bulk-title">
-                <i class="fa-solid fa-download"></i>
-                Descargar Plantilla Para Masivos
+                <i class="fa-solid fa-download"></i> Descargar plantilla
             </h3>
             <p class="bulk-text">
-                Descarga la plantilla, llena una fila por recibo y guárdala.
-                Incluye listas desplegables para localidad y mes, y una hoja de instrucciones.
+                Incluye listas para localidad y estrato. El periodo se captura como una fecha
+                del primer día del mes y se muestra con formato AAAA-MM.
             </p>
-            <a href="/consumos/plantilla" class="btn-secondary bulk-btn">
-                <i class="fa-solid fa-file-arrow-down"></i>
-                Descargar Plantilla
+            <a href="{{ url_for('consumo.descargar_plantilla_consumos') }}"
+                class="btn-secondary bulk-btn">
+                <i class="fa-solid fa-file-arrow-down"></i> Descargar plantilla Excel
             </a>
         </div>
 
         <div class="bulk-panel mt-4">
             <h3 class="bulk-title">
-                <i class="fa-solid fa-upload"></i>
-                Subir Masivos
+                <i class="fa-solid fa-upload"></i> Subir consumos
             </h3>
             <p class="bulk-text">
-                Selecciona el Excel (.xlsx) con la plantilla diligenciada.
-                Si alguna fila tiene errores no se guarda ninguna, y te indicamos cuáles corregir.
+                Formato .xlsx, máximo 10 MB y hasta 1000 registros. Si alguna fila tiene
+                errores, no se guardará ninguna.
             </p>
-
             <form id="bulk-form" class="bulk-form" enctype="multipart/form-data">
                 <label for="bulk-file" class="file-drop btn btn-secondary" id="file-drop">
                     <i class="fa-solid fa-cloud-arrow-up"></i>
-                    <span id="file-name">Haz clic para elegir un archivo .xlsx</span>
+                    <span id="file-name">Selecciona la plantilla .xlsx diligenciada</span>
                 </label>
-                <input type="file" id="bulk-file" name="archivo" accept=".xlsx" hidden required>
-
+                <input type="file" id="bulk-file" name="archivo" accept=".xlsx"
+                    hidden required>
                 <button type="submit" class="btn-primary bulk-btn mt-3" id="bulk-submit">
-                    <i class="fa-solid fa-floppy-disk"></i>
-                    Envíar Masivos
+                    <i class="fa-solid fa-floppy-disk"></i> Importar consumos
                 </button>
             </form>
         </div>
-
     </div>
-
-    <div id="bulk-result" class="bulk-result" hidden aria-live="polite"></div>
-
 </div>
-
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    const ahora = new Date();
-    const periodoActual = `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, '0')}`;
-    document.getElementById('periodo_consumo').setAttribute('max', periodoActual);
-</script>
+    const periodoActual = new Date();
+    const maxPeriodo = periodoActual.getFullYear() + "-" +
+        String(periodoActual.getMonth() + 1).padStart(2, "0");
+    document.getElementById("periodo_consumo").setAttribute("max", maxPeriodo);
 
-<script>
     (function () {
         const form = document.getElementById("bulk-form");
         const input = document.getElementById("bulk-file");
-        const nameEl = document.getElementById("file-name");
-        const btn = document.getElementById("bulk-submit");
+        const nombreArchivo = document.getElementById("file-name");
+        const boton = document.getElementById("bulk-submit");
+        const nombreInicial = "Selecciona la plantilla .xlsx diligenciada";
 
-        // Mostrar nombre del archivo seleccionado
         input.addEventListener("change", () => {
-            nameEl.textContent = input.files.length
+            nombreArchivo.textContent = input.files.length
                 ? input.files[0].name
-                : "Haz clic para elegir un archivo .xlsx";
+                : nombreInicial;
         });
 
-        // Mostrar alertas con SweetAlert2
-        function mostrar(ok, mensaje, errores = []) {
-            // Si la carga fue exitosa
-            if (ok) {
-                return Swal.fire({
-                    icon: "success",
-                    title: "¡Carga exitosa!",
-                    text: mensaje || "Los consumos se registraron correctamente.",
-                    confirmButtonText: "Aceptar",
-                    confirmButtonColor: "#198754"
-                });
-            }
-
-            // Si existen errores en las filas del Excel
-            if (errores && errores.length > 0) {
-                const listaErrores = errores.map(e =>
-                    `<li style="text-align:left; margin-bottom:8px;">
-                    <strong>Fila ${e.fila}:</strong>
-                    ${Swal.escapeHtml(String(e.detalle))}
-                </li>`
-                ).join("");
-
+        function mostrarErrores(data) {
+            const errores = data.errores || [];
+            if (!errores.length) {
                 return Swal.fire({
                     icon: "error",
-                    title: "No se pudo cargar el archivo",
-                    text: mensaje,
-                    html: `
-                    <p>${Swal.escapeHtml(String(mensaje || ""))}</p>
-                    <hr>
-                    <p><strong>Detalles de los errores:</strong></p>
-                    <div style="max-height:250px; overflow-y:auto;">
-                        <ul style="padding-left:22px;">
-                            ${listaErrores}
-                        </ul>
-                    </div>
-                `,
-                    confirmButtonText: "Entendido",
-                    confirmButtonColor: "#dc3545",
-                    width: "600px"
+                    title: "No se pudo importar",
+                    text: data.mensaje || "Revisa el archivo e inténtalo de nuevo.",
+                    confirmButtonText: "Entendido"
                 });
             }
 
+            const lista = errores.map((error) =>
+                "<li style='text-align:left;margin-bottom:8px'>" +
+                "<strong>Fila " + Number(error.fila) + ":</strong> " +
+                Swal.escapeHtml(String(error.detalle)) + "</li>"
+            ).join("");
 
             return Swal.fire({
                 icon: "error",
-                title: "¡Ups! Algo salió mal",
-                text: mensaje || "No se pudo procesar la solicitud.",
+                title: "Revisa las filas indicadas",
+                html: "<p>" + Swal.escapeHtml(String(data.mensaje || "")) +
+                    "</p><ul style='max-height:280px;overflow-y:auto;padding-left:22px'>" +
+                    lista + "</ul>",
                 confirmButtonText: "Entendido",
-                confirmButtonColor: "#dc3545"
+                width: "620px"
             });
         }
 
-        // Enviar formulario
-        form.addEventListener("submit", async (ev) => {
-            ev.preventDefault();
-
+        form.addEventListener("submit", async (evento) => {
+            evento.preventDefault();
             if (!input.files.length) {
-                mostrar(false, "Selecciona un archivo antes de subirlo.");
+                await Swal.fire("Selecciona un archivo", "", "warning");
                 return;
             }
 
-            btn.disabled = true;
-            btn.classList.add("is-loading");
-
-            // Indicador de procesamiento
+            boton.disabled = true;
+            boton.classList.add("is-loading");
             Swal.fire({
-                title: "Procesando archivo...",
-                text: "Estamos validando los registros del Excel.",
+                title: "Validando consumos...",
+                text: "La carga puede tardar unos segundos.",
                 allowOutsideClick: false,
                 allowEscapeKey: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                }
+                didOpen: () => Swal.showLoading()
             });
 
             try {
-
-                const resp = await fetch("/consumos/masivo", {
+                const respuesta = await fetch("/consumos/masivo", {
                     method: "POST",
                     body: new FormData(form)
                 });
-
-                const data = await resp.json();
-
+                const data = await respuesta.json().catch(() => ({}));
                 Swal.close();
 
-                if (!resp.ok || !data.success) {
-                    await mostrar(
-                        false,
-                        data.mensaje || "No se pudo procesar el archivo.",
-                        data.errores || []
-                    );
+                if (!respuesta.ok || !data.success) {
+                    await mostrarErrores(data);
                     return;
                 }
 
-                await mostrar(true, data.mensaje);
-
+                await Swal.fire({
+                    icon: "success",
+                    title: "Carga completada",
+                    text: data.mensaje,
+                    confirmButtonText: "Aceptar"
+                });
                 form.reset();
-                nameEl.textContent = "Haz clic para elegir un archivo .xlsx";
-
-
-                // También detectar errores HTTP del servidor
-                if (!resp.ok && data.success) {
-                    data.success = false;
-                }
-
+                nombreArchivo.textContent = nombreInicial;
+            } catch (error) {
                 Swal.close();
-
-                await mostrar(
-                    data.success,
-                    data.mensaje,
-                    data.errores || []
-                );
-
-                if (data.success) {
-                    form.reset();
-                    nameEl.textContent =
-                        "Haz clic para elegir un archivo .xlsx";
-                }
-
-            } catch (err) {
-                Swal.close();
-
-                mostrar(
-                    false,
-                    "No se pudo conectar con el servidor. Intenta de nuevo."
-                );
-
+                await Swal.fire({
+                    icon: "error",
+                    title: "Error de conexión",
+                    text: "No se pudo conectar con el servidor. Intenta de nuevo.",
+                    confirmButtonText: "Entendido"
+                });
             } finally {
-                btn.disabled = false;
-                btn.classList.remove("is-loading");
+                boton.disabled = false;
+                boton.classList.remove("is-loading");
             }
         });
     })();
 </script>
-
-
 {% endblock %}
