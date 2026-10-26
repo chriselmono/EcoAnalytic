@@ -10,6 +10,7 @@ from controller.userDashboardController import userDashboardBp
 from controller.publicacionController import publicacionBp
 from controller.authController import authBp
 from controller.desicionController import ml_controller
+from controller.mineriaController import mineriaBp
 from dotenv import load_dotenv
 import os
 
@@ -34,6 +35,7 @@ app.register_blueprint(userDashboardBp)
 app.register_blueprint(publicacionBp)
 app.register_blueprint(authBp)
 app.register_blueprint(ml_controller)
+app.register_blueprint(mineriaBp)
 
 # with app.app_context():
 #     from config.db import db
