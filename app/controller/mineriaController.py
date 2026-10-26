@@ -1,11 +1,21 @@
 from functools import wraps
 
-from flask import Blueprint, jsonify, request, session
+from flask import Blueprint, jsonify, render_template, request, session
+
+from config.auth import admin_required, login_required
 
 from service.mineriaService import MineriaService
 
 
 mineriaBp = Blueprint("mineria", __name__, url_prefix="/mineria")
+
+
+@mineriaBp.route("/", methods=["GET"])
+@login_required
+@admin_required
+def pagina_mineria():
+    """Muestra el módulo de agrupación a usuarios administradores."""
+    return render_template("mineria.html", page="mineria")
 
 
 def admin_api_required(func):

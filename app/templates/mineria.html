@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="/static/css/prediccion.css">
+<link rel="stylesheet" href="/static/css/mineria.css">
+{% endblock %}
+
+{% block page_title %}
+Minería de datos
+{% endblock %}
+
+{% block content %}
+<div class="content-card">
+    <div class="card-header">
+        <div>
+            <h2 class="card-title">
+                <i class="fa-solid fa-object-group"></i>
+                Grupos de viviendas con patrones similares
+            </h2>
+            <p class="card-subtitle">
+                K-means organiza los perfiles según el estrato, el número de personas
+                y el consumo promedio por persona.
+            </p>
+        </div>
+    </div>
+
+    <div class="ml-note km-explanation">
+        <strong>¿Cómo se forman los grupos?</strong>
+        <p>
+            Cada perfil se compara por estrato, personas en la vivienda y kWh por persona.
+            Los grupos se ordenan desde el menor hasta el mayor consumo promedio por persona.
+        </p>
+        <p class="km-caveat">
+            El modelo actual no identifica viviendas por separado. Por eso, cada perfil representa
+            el consumo más reciente de una cuenta de usuario y se usa como aproximación a una vivienda.
+        </p>
+    </div>
+
+    <div class="km-controls">
+        <div class="form-group">
+            <label for="cantidad-grupos">Cantidad de grupos</label>
+            <select id="cantidad-grupos" aria-describedby="grupos-ayuda">
+                {% for cantidad in range(2, 11) %}
+                <option value="{{ cantidad }}" {% if cantidad == 3 %}selected{% endif %}>
+                    {{ cantidad }} grupos
+                </option>
+                {% endfor %}
+            </select>
+            <small id="grupos-ayuda">Puedes elegir entre 2 y 10 grupos.</small>
+        </div>
+        <button type="button" class="btn-primary" id="btn-agrupar">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+            Analizar perfiles
+        </button>
+    </div>
+
+    <div id="km-message" class="ml-message" hidden aria-live="polite"></div>
+
+    <section id="km-results" hidden aria-live="polite">
+        <div class="ml-status km-status">
+            <div><strong id="km-viviendas">–</strong> perfiles analizados</div>
+            <div><strong id="km-total-grupos">–</strong> grupos generados</div>
+            <div><strong>K-means</strong> método de agrupación</div>
+        </div>
+
+        <h3 class="km-section-title">
+            <i class="fa-solid fa-chart-pie"></i> Resumen de grupos
+        </h3>
+        <div class="km-group-grid" id="km-groups"></div>
+
+        <h3 class="km-section-title">
+            <i class="fa-solid fa-table"></i> Perfiles clasificados
+        </h3>
+        <div class="km-table-wrap">
+            <table class="ml-table km-table">
+                <thead>
+                    <tr>
+                        <th>Grupo</th>
+                        <th>Cuenta</th>
+                        <th>Localidad</th>
+                        <th>Barrio</th>
+                        <th>Periodo</th>
+                        <th class="num">Consumo (kWh)</th>
+                        <th class="num">Estrato</th>
+                        <th class="num">Personas</th>
+                        <th class="num">kWh/persona</th>
+                    </tr>
+                </thead>
+                <tbody id="km-profiles"></tbody>
+            </table>
+        </div>
+        <p class="ml-note km-footer-note">
+            El resultado depende de los registros disponibles y de la cantidad de grupos seleccionada.
+            K-means encuentra patrones; no representa una calificación de eficiencia energética.
+        </p>
+    </section>
+</div>
+
+<script>
+    (function () {
+        const $ = (id) => document.getElementById(id);
+        const boton = $("btn-agrupar");
+
+        function mostrarMensaje(correcto, texto) {
+            const elemento = $("km-message");
+            elemento.hidden = false;
+            elemento.className = "ml-message " + (correcto ? "is-ok" : "is-error");
+            elemento.textContent = texto;
+        }
+
+        function crearElemento(tag, texto, clase) {
+            const elemento = document.createElement(tag);
+            elemento.textContent = texto;
+            if (clase) elemento.className = clase;
+            return elemento;
+        }
+
+        function etiquetaGrupo(grupo) {
+            const etiqueta = document.createElement("span");
+            etiqueta.className = "km-badge";
+            etiqueta.textContent = "Grupo " + grupo;
+            return etiqueta;
+        }
+
+        function pintarGrupos(grupos) {
+            const contenedor = $("km-groups");
+            contenedor.replaceChildren();
+
+            grupos.forEach((grupo) => {
+                const tarjeta = document.createElement("article");
+                tarjeta.className = "km-group-card";
+                tarjeta.appendChild(
+                    crearElemento("h4", grupo.nombre, "km-group-name")
+                );
+                tarjeta.appendChild(
+                    crearElemento("p", grupo.viviendas + " perfiles", "km-group-count")
+                );
+
+                const metricas = document.createElement("dl");
+                [
+                    ["Consumo promedio", Number(grupo.consumo_promedio_kwh).toFixed(2) + " kWh"],
+                    ["Personas promedio", Number(grupo.personas_promedio).toFixed(1)],
+                    ["Estrato promedio", Number(grupo.estrato_promedio).toFixed(1)],
+                    ["Por persona", Number(grupo.consumo_promedio_por_persona).toFixed(2) + " kWh"],
+                ].forEach(([nombre, valor]) => {
+                    const bloque = document.createElement("div");
+                    bloque.append(
+                        crearElemento("dt", nombre),
+                        crearElemento("dd", valor)
+                    );
+                    metricas.appendChild(bloque);
+                });
+                tarjeta.appendChild(metricas);
+                contenedor.appendChild(tarjeta);
+            });
+        }
+
+        function pintarPerfiles(perfiles) {
+            const cuerpo = $("km-profiles");
+            cuerpo.replaceChildren();
+
+            perfiles.forEach((perfil) => {
+                const fila = document.createElement("tr");
+                const cuenta = "Cuenta #" + perfil.usuario_id;
+                const valores = [
+                    etiquetaGrupo(perfil.grupo),
+                    crearElemento("td", cuenta),
+                    crearElemento("td", perfil.localidad || "—"),
+                    crearElemento("td", perfil.barrio || "—"),
+                    crearElemento("td", perfil.periodo || "Sin periodo"),
+                    crearElemento("td", Number(perfil.kw_consumo).toFixed(2), "num"),
+                    crearElemento("td", String(perfil.estrato), "num"),
+                    crearElemento("td", String(perfil.personas_vivienda), "num"),
+                    crearElemento("td", Number(perfil.kwh_por_persona).toFixed(2), "num"),
+                ];
+
+                const celdaGrupo = document.createElement("td");
+                celdaGrupo.appendChild(valores[0]);
+                fila.append(celdaGrupo, ...valores.slice(1));
+                cuerpo.appendChild(fila);
+            });
+        }
+
+        boton.addEventListener("click", async () => {
+            boton.disabled = true;
+            $("km-results").hidden = true;
+            $("km-message").hidden = true;
+            boton.classList.add("is-loading");
+
+            const parametros = new URLSearchParams({
+                grupos: $("cantidad-grupos").value
+            });
+
+            try {
+                const respuesta = await fetch(
+                    "/mineria/agrupar-viviendas?" + parametros.toString()
+                );
+                const datos = await respuesta.json().catch(() => ({}));
+                if (!respuesta.ok || !datos.success) {
+                    throw new Error(datos.mensaje || "No se pudo agrupar la información.");
+                }
+
+                $("km-viviendas").textContent = datos.viviendas_analizadas;
+                $("km-total-grupos").textContent = datos.cantidad_grupos;
+                pintarGrupos(datos.grupos || []);
+                pintarPerfiles(datos.viviendas || []);
+                $("km-results").hidden = false;
+                mostrarMensaje(true, datos.mensaje || "Análisis completado.");
+            } catch (error) {
+                mostrarMensaje(false, error.message || "No se pudo completar el análisis.");
+            } finally {
+                boton.disabled = false;
+                boton.classList.remove("is-loading");
+            }
+        });
+    })();
+</script>
+{% endblock %}
