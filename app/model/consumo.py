@@ -11,8 +11,6 @@ class Consumo(db.Model):
     barrio = db.Column(db.String(255), nullable=False)
     kw_consumo = db.Column(db.Numeric(10, 2), nullable=False)
 
-    # Primer día del mes facturado; la captura usa formato YYYY-MM.
-    # Nullable permite conservar consumos históricos sin periodo confirmado.
     periodo_consumo = db.Column(db.Date, nullable=True)
 
     fecha_registro = db.Column(db.DateTime, default=datetime.utcnow)

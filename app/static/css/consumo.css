@@ -137,10 +137,6 @@
     background: #dc2626;
 }
 
-/* =========================
-   MOBILE RESPONSIVE
-========================= */
-
 @media (max-width: 768px) {
 
     .table-card {
