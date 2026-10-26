@@ -15,7 +15,7 @@ function toggleSettingsMenu() {
   menu.classList.toggle("show");
 }
 
-// Cerrar si se hace clic fuera
+
 window.addEventListener("click", function(e) {
   const dropdown = document.querySelector(".settings-dropdown");
   if (!dropdown.contains(e.target)) {
