@@ -48,14 +48,13 @@ class MLService:
 
     @staticmethod
     def _obtener_historial_mensual():
-        """Agrupa los reportes de todos los usuarios por zona y mes calendario."""
+        """Agrupa los reportes de todos los usuarios por zona y periodo facturado."""
         filas = (
             Consumo.query.with_entities(
                 Consumo.localidad,
                 Consumo.barrio,
                 Consumo.kw_consumo,
-                Consumo.fecha,
-                Consumo.fecha_registro,
+                Consumo.periodo_consumo,
             )
             .all()
         )
@@ -66,26 +65,16 @@ class MLService:
 
         datos = pd.DataFrame(
             filas,
-            columns=[
-                "Localidad",
-                "Barrio",
-                "Consumo_kWh",
-                "Fecha",
-                "Fecha_Registro",
-            ],
+            columns=["Localidad", "Barrio", "Consumo_kWh", "Periodo_Consumo"],
         )
         datos["Consumo_kWh"] = pd.to_numeric(
             datos["Consumo_kWh"], errors="coerce"
         )
-        # fecha representa el periodo de consumo; fecha_registro sirve de respaldo
-        # para registros antiguos que no tengan fecha de consumo.
-        datos["Fecha"] = pd.to_datetime(datos["Fecha"], errors="coerce")
-        datos["Fecha_Registro"] = pd.to_datetime(
-            datos["Fecha_Registro"], errors="coerce"
+        datos["Periodo_Consumo"] = pd.to_datetime(
+            datos["Periodo_Consumo"], errors="coerce"
         )
-        datos["Fecha_Consumo"] = datos["Fecha"].fillna(datos["Fecha_Registro"])
         datos = datos.dropna(
-            subset=["Localidad", "Barrio", "Consumo_kWh", "Fecha_Consumo"]
+            subset=["Localidad", "Barrio", "Consumo_kWh", "Periodo_Consumo"]
         )
         if datos.empty:
             return pd.DataFrame(
@@ -99,7 +88,7 @@ class MLService:
             & (datos["Barrio"] != "")
             & (datos["Consumo_kWh"] >= 0)
         ]
-        datos["Periodo"] = datos["Fecha_Consumo"].dt.to_period("M")
+        datos["Periodo"] = datos["Periodo_Consumo"].dt.to_period("M")
         return (
             datos.groupby(
                 ["Localidad", "Barrio", "Periodo"], as_index=False
@@ -111,11 +100,9 @@ class MLService:
 
     @classmethod
     def _crear_muestras_entrenamiento(cls, historial):
-        """Cada muestra usa los tres meses consecutivos previos para estimar el siguiente."""
+        """Usa los tres meses consecutivos previos para estimar el siguiente."""
         muestras = []
-        llaves_zona = ["Localidad", "Barrio"]
-
-        for (localidad, barrio), grupo in historial.groupby(llaves_zona):
+        for (localidad, barrio), grupo in historial.groupby(["Localidad", "Barrio"]):
             serie = grupo.set_index("Periodo")["Consumo_kWh"].sort_index()
             for indice in range(cls.NUM_MESES_HISTORICOS, len(serie)):
                 periodo_objetivo = serie.index[indice]
@@ -126,17 +113,17 @@ class MLService:
                 if not all(periodo in serie.index for periodo in periodos_previos):
                     continue
 
-                muestra = {
-                    "Localidad": localidad,
-                    "Barrio": barrio,
-                    "Mes_Numero": str(periodo_objetivo.month),
-                    "Consumo_Lag_1": float(serie.loc[periodos_previos[0]]),
-                    "Consumo_Lag_2": float(serie.loc[periodos_previos[1]]),
-                    "Consumo_Lag_3": float(serie.loc[periodos_previos[2]]),
-                    "Consumo_Objetivo": float(serie.loc[periodo_objetivo]),
-                }
-                muestras.append(muestra)
-
+                muestras.append(
+                    {
+                        "Localidad": localidad,
+                        "Barrio": barrio,
+                        "Mes_Numero": str(periodo_objetivo.month),
+                        "Consumo_Lag_1": float(serie.loc[periodos_previos[0]]),
+                        "Consumo_Lag_2": float(serie.loc[periodos_previos[1]]),
+                        "Consumo_Lag_3": float(serie.loc[periodos_previos[2]]),
+                        "Consumo_Objetivo": float(serie.loc[periodo_objetivo]),
+                    }
+                )
         return pd.DataFrame(muestras)
 
     def entrenar_desde_base(self):
@@ -145,7 +132,7 @@ class MLService:
             self.entrenado = False
             return {
                 "success": False,
-                "mensaje": "No hay consumos con localidad, barrio y fecha válidos.",
+                "mensaje": "No hay consumos con localidad, barrio y periodo válidos.",
             }
 
         muestras = self._crear_muestras_entrenamiento(historial)
@@ -155,8 +142,8 @@ class MLService:
                 "success": False,
                 "mensaje": (
                     "Se requieren al menos tres ejemplos de entrenamiento. "
-                    "Cada ejemplo necesita tres meses consecutivos previos y "
-                    "el consumo del mes siguiente por localidad y barrio."
+                    "Cada ejemplo necesita tres periodos mensuales consecutivos "
+                    "previos y el consumo del mes siguiente por localidad y barrio."
                 ),
                 "ejemplos_disponibles": len(muestras),
             }
@@ -171,7 +158,7 @@ class MLService:
             "zonas_entrenadas": int(
                 historial[["Localidad", "Barrio"]].drop_duplicates().shape[0]
             ),
-            "ultimo_mes_con_datos": self.ultimo_periodo_entrenamiento,
+            "ultimo_periodo_con_datos": self.ultimo_periodo_entrenamiento,
         }
 
     def predecir_localidades(self, filtros=None):
@@ -192,7 +179,11 @@ class MLService:
         localidades = filtros.get("localidad")
         barrios = filtros.get("barrio")
         if localidades:
-            valores = localidades if isinstance(localidades, (list, tuple, set)) else [localidades]
+            valores = (
+                localidades
+                if isinstance(localidades, (list, tuple, set))
+                else [localidades]
+            )
             historial = historial[historial["Localidad"].isin(valores)]
         if barrios:
             valores = barrios if isinstance(barrios, (list, tuple, set)) else [barrios]
@@ -239,8 +230,8 @@ class MLService:
             return {
                 "success": False,
                 "mensaje": (
-                    "No hay zonas que cumplan los filtros y tengan tres meses "
-                    "consecutivos de historial."
+                    "No hay zonas que cumplan los filtros y tengan tres periodos "
+                    "mensuales consecutivos de historial."
                 ),
             }
 
