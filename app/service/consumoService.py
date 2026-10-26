@@ -153,7 +153,8 @@ class ConsumoService:
             hoja.column_dimensions[columna].width = ancho
         for fila in range(2, cls.MAX_FILAS_EXCEL + 2):
             hoja.cell(fila, 3).number_format = "0.00"
-            hoja.cell(fila, 4).number_format = "yyyy-mm"
+            # El periodo se captura como texto AAAA-MM, igual que el formulario.
+            hoja.cell(fila, 4).number_format = "@"
 
         validacion_localidad = DataValidation(
             type="list",
@@ -176,11 +177,11 @@ class ConsumoService:
 
         validacion_periodo = DataValidation(
             type="custom",
-            formula1="=AND(ISNUMBER(D2),DAY(D2)=1,D2>=DATE(2000,1,1),D2<=DATE(YEAR(TODAY()),MONTH(TODAY()),1))",
+            formula1="=AND(ISTEXT(D2),LEN(D2)=7,MID(D2,5,1)=\"-\",IFERROR(VALUE(LEFT(D2,4)),0)>=2000,IFERROR(VALUE(LEFT(D2,4)),0)<=YEAR(TODAY()),IFERROR(VALUE(RIGHT(D2,2)),0)>=1,IFERROR(VALUE(RIGHT(D2,2)),0)<=12,IFERROR(DATE(VALUE(LEFT(D2,4)),VALUE(RIGHT(D2,2)),1),DATE(1900,1,1))<=DATE(YEAR(TODAY()),MONTH(TODAY()),1))",
             allow_blank=False,
         )
-        validacion_periodo.error = "Usa el primer día del mes facturado; se mostrará como AAAA-MM."
-        validacion_periodo.prompt = "Ejemplo: 01/10/2026 se muestra como 2026-10."
+        validacion_periodo.error = "Ingresa el periodo con formato AAAA-MM y no uses un mes futuro."
+        validacion_periodo.prompt = "Ejemplo: 2026-10."
         validacion_periodo.showErrorMessage = True
         validacion_periodo.showInputMessage = True
         hoja.add_data_validation(validacion_periodo)
@@ -213,7 +214,7 @@ class ConsumoService:
             "Localidad: selecciona una opción de la lista.",
             "Barrio: escribe entre 2 y 255 caracteres.",
             "Consumo_kWh: mínimo 30, máximo dos decimales.",
-            "Periodo_facturado: ingresa una fecha del primer día del mes; se verá como AAAA-MM. Ejemplo: 01/10/2026 se muestra 2026-10.",
+            "Periodo_facturado: escribe el periodo como texto AAAA-MM. Ejemplo: 2026-10.",
             "Estrato: selecciona un valor de 1 a 6.",
             "Personas_vivienda: número entero entre 1 y 1000.",
             "Se admiten hasta 1000 filas. Si alguna fila tiene errores, no se importa ninguna.",
