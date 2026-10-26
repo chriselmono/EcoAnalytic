@@ -42,8 +42,7 @@ Historial de Consumos
                     <th>Localidad</th>
                     <th>Barrio</th>
                     <th>Consumo</th>
-                    <th>Mes</th>
-                    <th>Fecha</th>
+                    <th>Periodo facturado</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
@@ -70,9 +69,9 @@ Historial de Consumos
                         </span>
                     </td>
 
-                    <td data-label="mes">{{ consumo.mes }}</td>
-
-                    <td data-label="fecha">{{ consumo.fecha }}</td>
+                    <td data-label="periodo facturado">
+                        {{ consumo.periodo_consumo.strftime('%Y-%m') if consumo.periodo_consumo else 'Sin periodo' }}
+                    </td>
 
                     <td data-label="acciones">
 

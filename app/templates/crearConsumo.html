@@ -82,35 +82,13 @@ Registrar Consumo Energético
             </div>
 
             <div class="form-group">
-                <label for="fecha">
-                    <i class="fa-solid fa-calendar-days"></i>
-                    Fecha del Recibo
-                </label>
-
-                <input type="date" name="fecha" id="fecha" required>
-            </div>
-
-            <div class="form-group">
-                <label for="mes">
+                <div class="form-group">
+                <label for="periodo_consumo">
                     <i class="fa-solid fa-calendar"></i>
-                    Mes Facturado
+                    Periodo facturado (mes y año)
                 </label>
 
-                <select name="mes" id="mes" required>
-                    <option value="" disabled selected>Seleccione un mes</option>
-                    <option value="Enero">Enero</option>
-                    <option value="Febrero">Febrero</option>
-                    <option value="Marzo">Marzo</option>
-                    <option value="Abril">Abril</option>
-                    <option value="Mayo">Mayo</option>
-                    <option value="Junio">Junio</option>
-                    <option value="Julio">Julio</option>
-                    <option value="Agosto">Agosto</option>
-                    <option value="Septiembre">Septiembre</option>
-                    <option value="Octubre">Octubre</option>
-                    <option value="Noviembre">Noviembre</option>
-                    <option value="Diciembre">Diciembre</option>
-                </select>
+                <input type="month" name="periodo_consumo" id="periodo_consumo" required>
             </div>
 
         </div>
@@ -196,10 +174,9 @@ Registrar Consumo Energético
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    const hoy = new Date().toISOString().split('T')[0];
-
-    // Asignar como valor máximo al input
-    document.getElementById('fecha').setAttribute('max', hoy);
+    const ahora = new Date();
+    const periodoActual = `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, '0')}`;
+    document.getElementById('periodo_consumo').setAttribute('max', periodoActual);
 </script>
 
 <script>

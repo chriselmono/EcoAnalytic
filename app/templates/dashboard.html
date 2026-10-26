@@ -100,7 +100,7 @@
     <table class="table">
       <thead>
         <tr>
-          <th>Fecha</th>
+          <th>Periodo facturado</th>
           <th>Localidad</th>
           <th>Barrio</th>
           <th>Consumo</th>
@@ -111,7 +111,7 @@
       <tbody>
         {% for c in ultimos_consumos %}
         <tr>
-          <td>{{ c.fecha }}</td>
+          <td>{{ c.periodo_consumo.strftime('%Y-%m') if c.periodo_consumo else 'Sin periodo' }}</td>
           <td>{{ c.localidad }}</td>
           <td>{{ c.barrio }}</td>
           <td>{{ c.kw_consumo }} kWh</td>
