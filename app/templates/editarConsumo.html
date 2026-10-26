@@ -59,6 +59,8 @@ Editar consumo
                 </label>
                 <input type="text" name="barrio" id="barrio"
                     minlength="2" maxlength="255" value="{{ valores.get('barrio', consumo.barrio) }}"
+                    pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+"
+                    title="Ingresa únicamente letras, tildes, ñ y espacios. No se permiten números ni caracteres especiales."
                     placeholder="Ej: Castilla" required>
             </div>
 
@@ -103,7 +105,7 @@ Editar consumo
                     <i class="fa-solid fa-people-roof"></i> Personas en la vivienda
                 </label>
                 <input type="number" name="personas_vivienda" id="personas_vivienda"
-                    min="1" max="1000" step="1"
+                    min="1" max="20" step="1"
                     value="{{ valores.get('personas_vivienda', consumo.personas_vivienda if consumo.personas_vivienda is not none else '') }}"
                     placeholder="Ej: 3" required>
             </div>
