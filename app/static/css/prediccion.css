@@ -52,6 +52,40 @@
     margin-bottom: 7px;
 }
 
+.ml-filters {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    margin: 20px 0;
+}
+
+.ml-filters .form-group {
+    margin: 0;
+}
+
+.ml-filters label {
+    display: block;
+    margin-bottom: 8px;
+    color: #d1d5db;
+    font-weight: 600;
+}
+
+.ml-filters select {
+    width: 100%;
+    min-height: 44px;
+    padding: 10px 12px;
+    color: #f9fafb;
+    background: #111827;
+    border: 1px solid #374151;
+    border-radius: 8px;
+}
+
+@media (max-width: 600px) {
+    .ml-filters {
+        grid-template-columns: 1fr;
+    }
+}
+
 /* ========================================
    BOTONES
    ======================================== */
@@ -149,7 +183,7 @@
 
 .ml-table {
     width: 100%;
-    min-width: 850px;
+    min-width: 700px;
     border-collapse: collapse;
     color: #d1d5db;
     font-size: 0.9rem;
