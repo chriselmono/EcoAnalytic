@@ -91,6 +91,7 @@ class ConsumoService:
                 {
                     "nombre": nombre,
                     "consumo": consumo_val,
+                    "capacidad": consumo_val + 200,
                 }
             )
         return zonas
