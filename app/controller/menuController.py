@@ -20,7 +20,11 @@ def dashboard():
     # Las consultas sin user_id agregan los consumos de todos los hogares.
     total_kwh = ConsumoService.total_kwh()
     consumo_mensual = ConsumoService.consumo_mensual()
-    zonas = ConsumoService.consumo_por_zona()
+    zonas = sorted(
+        ConsumoService.consumo_por_zona(),
+        key=lambda zona: zona["consumo"],
+        reverse=True,
+    )
     variacion = ConsumoService.variacion_mensual()
     alertas = ConsumoService.obtener_alertas()
     ultimos_consumos = ConsumoService.ultimos_consumos()
