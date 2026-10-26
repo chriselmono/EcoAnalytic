@@ -82,6 +82,9 @@ def cargar_consumos_masivos():
 @login_required
 def editar_consumo(id):
     consumo = ConsumoService.obtener_consumo(id, session["user_id"])
+    if consumo is None:
+        flash("El consumo no existe o no tienes permiso para editarlo.", "error")
+        return redirect(url_for("consumo.listar_consumos"))
 
     if request.method == "POST":
         data = {
@@ -92,10 +95,24 @@ def editar_consumo(id):
             "estrato": request.form.get("estrato"),
             "personas_vivienda": request.form.get("personas_vivienda"),
         }
-        ConsumoService.editar_consumo(id, data, session["user_id"])
+        try:
+            ConsumoService.editar_consumo(id, data, session["user_id"])
+        except ValueError as error:
+            flash(str(error), "error")
+            return redirect(url_for("consumo.editar_consumo", id=id))
+        except Exception:
+            flash("No se pudieron guardar los cambios. Inténtalo de nuevo.", "error")
+            return redirect(url_for("consumo.editar_consumo", id=id))
+
+        flash("Consumo actualizado correctamente.", "success")
         return redirect(url_for("consumo.listar_consumos"))
 
-    return render_template("editar_consumo.html", consumo=consumo)
+    return render_template(
+        "editarConsumo.html",
+        consumo=consumo,
+        localidades=ConsumoService.LOCALIDADES_BOGOTA,
+        page="historial",
+    )
 
 
 @consumoBp.route("/consumos/eliminar/<int:id>")
