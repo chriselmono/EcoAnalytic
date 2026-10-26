@@ -15,10 +15,8 @@ def admin_api_required(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         if "user_id" not in session:
-            return jsonify(
-                {"success": False, "mensaje": "Debes iniciar sesión."}
-            ), 401
-        if session.get("rol") is not True:
+            return jsonify({"success": False, "mensaje": "Debes iniciar sesión."}), 401
+        if session.get("rol") not in (True, 1):
             return jsonify(
                 {"success": False, "mensaje": "Solo un administrador puede acceder."}
             ), 403
@@ -42,6 +40,7 @@ def pagina_prediccion():
     barrios = sorted({barrio for _, barrio in registros if barrio})
     return render_template(
         "prediccion.html",
+        page="prediccion",
         localidades=localidades,
         barrios=barrios,
     )
@@ -58,9 +57,7 @@ def estado_modelo():
             "success": True,
             "registros_bd": registros_validos,
             "entrenado": ml_service.entrenado,
-            "ultimo_periodo_entrenamiento": (
-                ml_service.ultimo_periodo_entrenamiento
-            ),
+            "ultimo_periodo_entrenamiento": ml_service.ultimo_periodo_entrenamiento,
         }
     )
 
